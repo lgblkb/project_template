@@ -1,0 +1,9 @@
+all:
+  hosts:
+    localhost:
+      ansible_connection: local
+#      ansible_python_interpreter: "/home/lgblkb/.cache/pypoetry/virtualenvs/imagination-hHlx3vr6-py3.6/bin/python"
+#      ansible_python_interpreter: "/usr/bin/python3"
+      ansible_python_interpreter: "python3"
+      become: no
+

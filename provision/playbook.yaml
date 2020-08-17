@@ -1,0 +1,6 @@
+- hosts: all
+  become: no
+  tasks:
+    - name: Greetings
+      debug:
+        msg: "Salem Alem!!!"
