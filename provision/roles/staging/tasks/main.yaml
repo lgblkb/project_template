@@ -1,0 +1,35 @@
+- name: Git pull
+  git:
+    repo: "{{project_info.repository}}"
+    dest: "{{project_folder}}"
+
+- name: Run base tasks
+  include_role:
+    name: base
+  vars:
+    build_target: 'builder'
+  tags: ['base']
+
+- name: Build docker image
+  shell: >-
+    docker image build
+    --target {{build_target}}
+    -t {{image_name}}:{{image_tag}}
+    --build-arg USER_ID={{ansible_user_uid}}
+    --build-arg GROUP_ID={{ansible_user_gid}}
+    --build-arg USERNAME={{ansible_user_id}}
+    --build-arg PROJECT_DIR={{project_folder}}
+    {{project_folder}}
+
+- name: Run docker container
+  shell: >-
+    docker container rm {{image_name}};
+    docker run
+    --detach
+    --name {{image_name}}
+    -v {{project_folder}}:{{project_folder}}
+    -w {{project_folder}}
+    --env-file {{project_folder}}/.env
+    {{image_name}}:{{image_tag}}
+#    {{project_vars.cmd|default("cmd")}}
+

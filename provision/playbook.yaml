@@ -1,6 +1,18 @@
 - hosts: all
   become: no
+  vars:
+    project_folder: "{{playbook_dir|dirname}}"
+
   tasks:
-    - name: Greetings
-      debug:
-        msg: "Salem Alem!!!"
+    - name: Read secrets
+      include_vars:
+        file: "{{project_folder}}/provision/envs/{{env_name}}/.secrets.yaml"
+        name: secrets
+
+    #    - debug: msg="{{project_folder}}
+
+    - name: Run environment specific tasks
+      include_role:
+        name: "{{env_name}}"
+
+

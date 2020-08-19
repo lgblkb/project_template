@@ -3,11 +3,35 @@ name = "proj_1"
 version = "0.1.0"
 description = ""
 authors = ["lgblkb <dbakhtiyarov@nu.edu.kz>"]
+repository = "git@github.com:lgblkb/project_template.git"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "3.8"
+python-box = { extras = ["ruamel.yaml", "toml"], version = "^5.1.0" }
+ansible = "^2.9.12"
+
 
 [tool.poetry.dev-dependencies]
+taskipy = "^1.3.0"
+dynaconf = "^3.1.0"
+ansible = "^2.9.12"
+tomlkit = "^0.7.0"
+docker = "^4.3.0"
+python-dotenv = { extras = ["cli"], version = "^0.14.0" }
+
+
+[tool.taskipy.tasks]
+export = "poetry export --without-hashes -f requirements.txt > requirements.txt"
+pre_export = "poetry update;"
+export_base = "cp requirements.txt requirements_base.txt"
+pre_export_base = "task export;"
+cache_clear = "poetry cache clear"
+push = "git commit -a -m 'Update'; git push"
+
+ansible = "python ./provision/ansible_helper.py"
+
+run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0"
+build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/proj_1 /home/lgblkb/PycharmProjects/proj_1"
 
 [build-system]
 requires = ["poetry>=0.12"]

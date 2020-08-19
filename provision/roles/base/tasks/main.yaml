@@ -1,0 +1,21 @@
+- name: Greetings
+  debug:
+    msg: "Salem Alem!!!"
+
+- name: Read secrets
+  include_vars:
+    file: "{{env_folder}}/.secrets.yaml"
+    name: secrets
+
+- name: Read project info
+  manage_toml:
+    path: "{{project_folder}}/pyproject.toml"
+  register: toml_info
+
+- set_fact:
+    project_info: "{{toml_info.meta.tool.poetry}}"
+- set_fact:
+    image_name: "{{project_info.name}}-{{env_name}}"
+    image_tag: "{{project_info.version}}"
+#- debug: msg={{project_info}}
+#    - fail:
