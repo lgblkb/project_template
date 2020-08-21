@@ -19,8 +19,16 @@
     image_tag: "{{project_info.version}}"
 - set_fact:
     image_fullname: "{{project_info.name}}-{{env_name}}:{{project_info.version}}"
+- eval:
+    expression: filepath.replace(project_folder,master_project_folder)
+    data:
+      master_project_folder: "{{master_project_folder}}"
+      project_folder: "{{project_folder}}"
+      filepath: "{{toml_meta.copy_as.path}}"
+  register: eval_meta
+
 - include_vars:
-    file: "{{toml_meta.copy_as.path}}"
+    file: "{{eval_meta.out}}"
     name: toml_data
 #- debug: msg={{toml_data.tool.taskipy.tasks}}
 #- fail:
@@ -39,3 +47,10 @@
     - set_fact:
         project_tasks: "{{eval_meta.project_tasks}}"
     #    - debug: msg={{project_tasks}}
+    - manage_toml:
+        path: "{{project_folder}}/pyproject.toml"
+        data:
+          tool:
+            taskipy:
+              tasks: "{{project_tasks}}"
+      register: toml_meta

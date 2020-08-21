@@ -29,14 +29,7 @@
       import_role:
         name: base
 
-    - name: Create taskipy tasks
-      manage_toml:
-        path: "{{project_folder}}/pyproject.toml"
-        data:
-          tool:
-            taskipy:
-              tasks: "{{project_tasks}}"
-      register: toml_meta
+
 
 
 

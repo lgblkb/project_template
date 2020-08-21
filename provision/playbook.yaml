@@ -17,19 +17,18 @@
         accept_hostkey: yes
         key_file: "~/.ssh/server_rsa"
 
-    - include_role: base
-        tasks_from: install_reqs
+    - include_role:
+        name: base
+        public: yes
     #    - debug: msg="{{project_folder}}"
-
-    - fail:
 
     - name: Read secrets
       include_vars:
-        file: "{{env_folder}}/.secrets.yaml"
+        file: "{{master_project_folder}}/provision/envs/{{env_name}}/.secrets.yaml"
         name: secrets
 
     - name: Build docker image
-      shell: "{{project_tasks.docker_build}}"
+      shell: "{{hostvars.localhost.project_tasks.docker_build}}"
 
     - name: Run docker container
       docker_container:
