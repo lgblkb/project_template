@@ -16,13 +16,13 @@
         dest: "{{project_folder}}"
         accept_hostkey: yes
         key_file: "~/.ssh/server_rsa"
-    - name: Install provision dependencies
-      pip:
-        requirements: "{{project_folder}}/provision/.requirements.txt"
+
+    - include_role: base
+        tasks_from: install_reqs
     #    - debug: msg="{{project_folder}}"
 
-    #    - fail:
-    
+    - fail:
+
     - name: Read secrets
       include_vars:
         file: "{{env_folder}}/.secrets.yaml"

@@ -2,6 +2,8 @@
   debug:
     msg: "Salem Alem!!!"
 
+- include_tasks: install_reqs.yaml
+
 - name: Read project info
   manage_toml:
     path: "{{project_folder}}/pyproject.toml"

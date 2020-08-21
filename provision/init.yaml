@@ -3,10 +3,6 @@
   vars:
     secret_path: ".secret"
   tasks:
-    - name: Install provision dependencies
-      pip:
-        requirements: "{{project_folder}}/provision/.requirements.txt"
-
     - name: Check .secret existence
       stat:
         path: "{{secret_path}}"
