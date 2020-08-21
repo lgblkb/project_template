@@ -1,0 +1,13 @@
+#- name: Log into DockerHub
+#  docker_login:
+#    username: "{{secrets.docker_login.username}}"
+#    password: "{{secrets.docker_login.password}}"
+#    registry_url: "{{secrets.docker_login.registry_url|default(omit)}}"
+#  when: "'docker_login' in secrets"
+
+- name: Deploy docker containers
+  include_role:
+    name: lgblkb.lgblkb_deployer
+  vars:
+    container_defs_dir: service_defs
+

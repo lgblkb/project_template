@@ -1,28 +1,46 @@
-- hosts: all
-  become: no
+- hosts: localhost
   roles:
     - base
-
   tasks:
-    - name: Build docker image
-      shell:
-        cmd: "{{project_tasks.docker_build}}"
-        chdir:
 
-#    - name: Docker run
-#      docker_container:
-#        name: "{{image_name}}"
-#        image: "{{image_fullname}}"
-#        hostname: "{{image_name}}"
-#        env_file: "{{project_folder}}/.env"
-#        env:
-#          ENV_FOR_DYNACONF: "{{env_name}}"
-#        comparisons:
-#          '*': "strict"
-#        volumes:
-#          - "{{project_folder|quote}}:{{project_folder|quote}}"
-#        working_dir: "{{project_folder|quote}}"
-#        command: "sleep 1000"
+
+- hosts: all
+  tasks:
+#    - debug: msg="{{hostvars.localhost.project_tasks}}"
+    - name: Pull the project
+      git:
+        repo: "{{hostvars.localhost.project_info.repo}}"
+
+
+    #    - name: Run base tasks
+    #      import_role:
+    #        name: base
+
+
+    - fail:
+
+    - name: Read secrets
+      include_vars:
+        file: "{{env_folder}}/.secrets.yaml"
+        name: secrets
+
+    - name: Build docker image
+      shell: "{{project_tasks.docker_build}}"
+
+    - name: Run docker container
+      docker_container:
+        name: "{{image_name}}"
+        image: "{{image_fullname}}"
+        hostname: "{{image_name}}"
+        env_file: "{{project_folder}}/.env"
+        env:
+          ENV_FOR_DYNACONF: "{{env_name}}"
+        comparisons:
+          '*': "strict"
+        volumes:
+          - "{{project_folder|quote}}:{{project_folder|quote}}"
+        working_dir: "{{project_folder|quote}}"
+        command: "sleep 1000"
 
 
 

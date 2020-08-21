@@ -3,9 +3,9 @@
   vars:
     secret_path: ".secret"
   tasks:
-    #    - name: Install provision dependencies
-    #      pip:
-    #        requirements: "{{project_folder}}/provision/.requirements.txt"
+    - name: Install provision dependencies
+      pip:
+        requirements: "{{project_folder}}/provision/.requirements.txt"
 
     - name: Check .secret existence
       stat:
@@ -40,6 +40,14 @@
           tool:
             taskipy:
               tasks: "{{project_tasks}}"
+      register: toml_meta
+
+    - name: Cache development vars
+      copy:
+        content: "{{vars|to_nice_yaml}}"
+        dest: "{{project_folder}}/provision/.dev_vars.yaml"
+        mode: '600'
+
 
     #    - debug: msg={{project_tasks}}
 #    - fail:

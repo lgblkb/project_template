@@ -32,7 +32,7 @@ RUN pip3 install -U pip wheel setuptools numpy &&\
 FROM base as builder
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
     ansible sshpass &&\
-    pip3 install poetry &&\
+    pip3 install poetry ansible &&\
     ansible-galaxy install lgblkb.lgblkb_deployer
 
 ARG USER_ID
