@@ -10,12 +10,33 @@
 - name: Read project info
   manage_toml:
     path: "{{project_folder}}/pyproject.toml"
-  register: toml_info
+    copy_as:
+      path: "{{project_folder}}/provision/.toml_info.yaml"
+      method: to_yaml
+  register: toml_meta
 
 - set_fact:
-    project_info: "{{toml_info.meta.tool.poetry}}"
+    project_info: "{{toml_meta.out.tool.poetry}}"
 - set_fact:
     image_name: "{{project_info.name}}-{{env_name}}"
     image_tag: "{{project_info.version}}"
-#- debug: msg={{project_info}}
-#    - fail:
+- set_fact:
+    image_fullname: "{{project_info.name}}-{{env_name}}:{{project_info.version}}"
+- include_vars:
+    file: "{{toml_meta.copy_as.path}}"
+    name: toml_data
+#- debug: msg={{toml_data.tool.taskipy.tasks}}
+#- fail:
+#- debug: msg={{'list(vars.keys())'|eval(vars=vars)}}
+#- debug: msg={{'vars["project_folder"]'|eval(vars=vars)}}
+- eval:
+    expression: |
+      for k,v in project_tasks.items():
+        project_tasks[k]=" ".join(map(str.strip, v.splitlines())).strip()
+    data:
+      project_tasks: "{{toml_data.tool[project_info.name].tasks}}"
+    out: project_tasks
+  register: eval_meta
+- set_fact:
+    project_tasks: "{{eval_meta.project_tasks}}"
+#    - debug: msg={{project_tasks}}

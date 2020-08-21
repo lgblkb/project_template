@@ -61,29 +61,11 @@ def play(inventory, other_args):
     run_cmd_parts(parts)
 
 
-# @main.command(context_settings=context_settings)
-# @click.argument('other_args', nargs=-1, type=click.UNPROCESSED)
-# def init_local(other_args):
-#     parts = ['ansible-playbook', *vault_parts,
-#              '--inventory', f'provision/envs/development',
-#              'provision/init_local.yaml', *other_args,
-#              ]
-#     run_cmd_parts(parts)
-
-
 @main.command(context_settings=context_settings)
 @click.argument('other_args', nargs=-1, type=click.UNPROCESSED)
-def init(other_args):
+def play_local(other_args):
     parts = ['ansible-playbook', '--inventory', f'provision/envs/development',
              'provision/playbook_local.yaml', *other_args, ]
-    run_cmd_parts(parts)
-
-
-@main.command(context_settings=context_settings)
-@click.argument('other_args', nargs=-1, type=click.UNPROCESSED)
-def run(other_args):
-    parts = ['ansible-playbook', '--inventory', f'provision/envs/development',
-             'provision/playbook.yaml', *other_args]
     run_cmd_parts(parts)
 
 

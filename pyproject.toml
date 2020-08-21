@@ -8,30 +8,62 @@ repository = "git@github.com:lgblkb/project_template.git"
 [tool.poetry.dependencies]
 python = "3.8"
 python-box = { extras = ["ruamel.yaml", "toml"], version = "^5.1.0" }
+taskipy = "^1.3.0"
+dynaconf = "^3.1.0"
+tomlkit = "^0.7.0"
+docker = "^4.3.0"
 ansible = "^2.9.12"
+asteval = "^0.9.18"
+more-itertools = "^8.4.0"
 
 
 [tool.poetry.dev-dependencies]
-taskipy = "^1.3.0"
-dynaconf = "^3.1.0"
-ansible = "^2.9.12"
-tomlkit = "^0.7.0"
-docker = "^4.3.0"
-python-dotenv = { extras = ["cli"], version = "^0.14.0" }
+
 
 
 [tool.taskipy.tasks]
-export = "poetry export --without-hashes -f requirements.txt > requirements.txt"
-pre_export = "poetry update;"
+export = "poetry update; poetry export --without-hashes -f requirements.txt > requirements.txt"
 export_base = "cp requirements.txt requirements_base.txt"
 pre_export_base = "task export;"
 cache_clear = "poetry cache clear"
 push = "git commit -a -m 'Update'; git push"
 
 ansible = "python ./provision/ansible_helper.py"
+build = "task ansible play-local; task docker_build"
 
-run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0"
-build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/proj_1 /home/lgblkb/PycharmProjects/proj_1"
+docker_build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/proj_1 /home/lgblkb/PycharmProjects/proj_1"
+docker_run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0"
+docker_runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0 bash"
+
+
+[tool.proj_1.tasks]
+docker_build = """
+docker image build -t {{image_fullname}}
+                  --target {{build_target}}
+                  --build-arg USER_ID={{ansible_user_uid}}
+                  --build-arg GROUP_ID={{ansible_user_gid}}
+                  --build-arg USERNAME={{ansible_user_id}}
+                  --build-arg PROJECT_DIR={{project_folder}}
+                  {{project_folder}}
+"""
+
+docker_run = """
+docker run -it --rm
+            --env-file .env
+            -v {{project_folder|quote}}:{{project_folder|quote}}
+            -w {{project_folder|quote}}
+            {{image_fullname}}
+"""
+
+docker_runit = """
+docker run -it --rm
+            --user root
+            --env-file .env
+            -v {{project_folder|quote}}:{{project_folder|quote}}
+            -w {{project_folder|quote}}
+            {{image_fullname}}
+            bash
+"""
 
 [build-system]
 requires = ["poetry>=0.12"]

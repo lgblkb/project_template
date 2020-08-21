@@ -1,18 +1,34 @@
 - hosts: all
   become: no
-  vars:
-    project_folder: "{{playbook_dir|dirname}}"
+  roles:
+    - base
 
   tasks:
-    - name: Read secrets
-      include_vars:
-        file: "{{project_folder}}/provision/envs/{{env_name}}/.secrets.yaml"
-        name: secrets
+    - name: Build docker image
+      shell:
+        cmd: "{{project_tasks.docker_build}}"
+        chdir:
 
-    #    - debug: msg="{{project_folder}}
+#    - name: Docker run
+#      docker_container:
+#        name: "{{image_name}}"
+#        image: "{{image_fullname}}"
+#        hostname: "{{image_name}}"
+#        env_file: "{{project_folder}}/.env"
+#        env:
+#          ENV_FOR_DYNACONF: "{{env_name}}"
+#        comparisons:
+#          '*': "strict"
+#        volumes:
+#          - "{{project_folder|quote}}:{{project_folder|quote}}"
+#        working_dir: "{{project_folder|quote}}"
+#        command: "sleep 1000"
 
-    - name: Run environment specific tasks
-      include_role:
-        name: "{{env_name}}"
+
+
+
+
+
+
 
 

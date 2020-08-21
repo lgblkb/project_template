@@ -32,7 +32,7 @@ RUN pip3 install -U pip wheel setuptools numpy &&\
 FROM base as builder
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
     ansible sshpass &&\
-    pip3 install poetry taskipy tomlkit dynaconf python-dotenv ansible docker &&\
+    pip3 install poetry &&\
     ansible-galaxy install lgblkb.lgblkb_deployer
 
 ARG USER_ID
@@ -47,10 +47,14 @@ RUN groupadd -g ${GROUP_ID} ${USERNAME} &&\
      ${USER_ID}:${GROUP_ID} \
         /home/${USERNAME}
 
+COPY provision/.requirements.txt .
+RUN pip3 install --no-cache-dir -r .requirements.txt
+
 COPY requirements_base.txt .
 RUN pip3 install --no-cache-dir -r requirements_base.txt
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
+
 USER ${USERNAME}
 
 FROM base as production
@@ -58,7 +62,5 @@ COPY requirements_base.txt .
 RUN pip3 install --no-cache-dir -r requirements_base.txt
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
-
-RUN apt-get update -y && install_clean screen
 
 WORKDIR /app

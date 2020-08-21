@@ -1,12 +1,19 @@
-import os
-from secrets import choice
+from asteval import Interpreter
 import string
+import itertools as it
+import more_itertools as mit
 
-password_length = 32
-alphabet = string.ascii_letters + string.digits
-password = ''.join(choice(alphabet) for i in range(password_length))
 
-filename = './provision/.secret'
-assert not os.path.exists(filename)
-with open(filename, 'w') as file:
-    file.write(password)
+def main():
+    aeval = Interpreter(usersyms=dict(string=string, it=it, mit=mit))
+    aeval.symtable['qwe'] = """
+qweqweqwe
+    """
+    res = aeval('qwe.strip()')
+    print(res)
+
+    pass
+
+
+if __name__ == '__main__':
+    main()
