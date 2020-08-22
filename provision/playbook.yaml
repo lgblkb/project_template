@@ -15,6 +15,7 @@
             accept_hostkey: yes
             key_file: "~/.ssh/server_rsa"
             force: yes
+      when: ansible_connection!='local'
 
     - name: Run base tasks
       import_role:
@@ -28,10 +29,16 @@
     - name: Build docker image
       shell: "{{project_tasks.docker_build}}"
 
-    - name: Deploy docker containers
+    - name: Deploy infrastructure
       include_role:
-        name: base
-        tasks_from: deployment.yaml
+        name: deploy_docker
+        tasks_from: infrastructure.yaml
+      when: ansible_connection=='local' or infrastructure
+
+    - name: Deploy project
+      include_role:
+        name: deploy_docker
+
 
 
 

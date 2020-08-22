@@ -1,12 +1,12 @@
-- name: Run docker container
-  docker_container:
-    name: "{{image_name}}"
-    hostname: "{{image_name}}"
+- include_tasks: default.yaml
+
+- name: Run project
+  include_tasks: file='run_container.yaml'
+  vars:
     image: "{{image_fullname}}"
+    name: "{{image_name}}"
     env:
       ENV_FOR_DYNACONF: "{{env_name}}"
-    comparisons:
-      '*': "strict"
     volumes:
       - "{{project_folder}}:{{project_folder}}"
     working_dir: "{{project_folder}}"

@@ -1,0 +1,19 @@
+- hosts: all
+  tasks:
+    - name: Minecraft server
+      docker_container:
+        image: itzg/minecraft-bedrock-server
+        name: minecraft_server
+        env:
+          EULA: "TRUE"
+          VERSION: "1.16"
+          GAMEMODE: "survival"
+          SERVER_NAME: "Alizhan Server"
+        ports:
+          - "19132:19132/udp"
+
+        comparisons:
+          '*': "strict"
+        volumes:
+          - "/home/lgblkb/minecraft_server_data:/data"
+        restart_policy: always

@@ -2,7 +2,7 @@
 
 # Copyright: (c) 2018, Terry Jones <terry.jones@example.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+from pprint import pformat
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -75,6 +75,7 @@ import more_itertools as mit
 from asteval import Interpreter
 from pathlib import PurePath
 from box import Box
+import textwrap
 
 a = Interpreter(usersyms=dict(string=string, it=it, mit=mit,
                               Path=PurePath, Box=Box))
@@ -89,19 +90,55 @@ def run_module():
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True, )
 
-    params = Box(module.params)
-    a.symtable.update(params.data)
-    out = a(params.expression)
-    if params.out: out = a.symtable[params.out]
-
-    result = params.copy()
-    result.update(changed=False, **{(params.out or 'out'): out})
+    result = evaluate(module.params)
 
     if module.check_mode: module.exit_json(**result)
     module.exit_json(**result)
 
 
+def evaluate(params: dict):
+    params = Box(params)
+    a.symtable.update(params.data)
+    out = a(textwrap.dedent(params.expression))
+    if params.out: out = a.symtable[params.out]
+
+    result = params.copy()
+    result.update(changed=False, **{(params.out or 'out'): out})
+    return result.to_dict()
+
+
+def test():
+    params = Box(default_box=True)
+    params.data.info.image = 'proj_1-development'
+    params.expression = """
+    out = Box(info)
+    
+    def update(key, info_default=None, kwargs=None):
+        if kwargs:
+            out.update({key: kwargs})
+            out.update(info.get(key, info_default))
+        elif (key in info) or info_default:
+            out.update({key: info.get(key, info_default)})
+    
+    out.image = info['image']
+    update('name', out.image)
+    update('hostname', out.name)
+    
+    env = Box()
+    env.ENV_FOR_DYNACONF = "{{env_name}}"
+    env.TZ = 'Asia/Almaty'
+    update('env', {}, env)
+    update('comparisons', {}, {'*': 'strict'})
+    update('volumes', [])
+    out = out.to_dict()"""
+
+    params.out = 'out'
+    result = evaluate(params)
+    print(pformat(result))
+
+
 def main():
+    # test()
     run_module()
 
 

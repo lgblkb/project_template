@@ -1,0 +1,61 @@
+- name: Generate docker container info
+  eval:
+    expression: |
+      out = Box(info)
+
+      def update(key, info_default=None, kwargs=None):
+          if kwargs:
+              kwargs.update(info.get(key, info_default))
+              out.update({key: kwargs})
+          elif (key in info) or info_default:
+              out.update({key: info.get(key, info_default)})
+
+      out.image = info['image']
+      update('name', out.image.split(':')[0])
+      update('hostname', out.name)
+
+      env = Box()
+      env.TZ = 'Asia/Almaty'
+      update('env', {}, env)
+
+      update('comparisons', {}, {'*': 'strict'})
+      update('volumes', [])
+    data:
+      info:
+        image: "{{image}}"
+        name: "{{name|default(omit)}}"
+        hostname: "{{hostname|default(omit)}}"
+
+        command: "{{command|default(omit)}}"
+        volumes: "{{volumes|default(omit)}}"
+
+        env: "{{env|default(omit)}}"
+        env_file: "{{env_file|default(omit)}}"
+
+        ports: "{{ports|default(omit)}}"
+        exposed_ports: "{{exposed_ports|default(omit)}}"
+        exposed: "{{exposed|default(omit)}}"
+        expose: "{{expose|default(omit)}}"
+        networks: "{{networks|default(omit)}}"
+
+        user: "{{user|default(omit)}}"
+        working_dir: "{{working_dir|default(omit)}}"
+
+        healthcheck: "{{healthcheck|default(omit)}}"
+        sysctls: "{{sysctls|default(omit)}}"
+
+        mounts: "{{mounts|default(omit)}}"
+        networks_cli_compatible: "{{networks_cli_compatible|default(omit)}}"
+        comparisons: "{{comparisons|default(omit)}}"
+        pull: "{{pull|default(omit)}}"
+        restart: "{{restart|default(omit)}}"
+        restart_policy: "{{restart_policy|default(omit)}}"
+        recreate: "{{recreate|default(omit)}}"
+        state: "{{state|default(omit)}}"
+    out: out
+  register: container_info
+
+#- debug: msg="{{container_info.out}}"
+
+- name: Launch container
+  docker_container: "{{container_info.out}}"

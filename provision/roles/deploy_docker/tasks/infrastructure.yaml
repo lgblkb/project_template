@@ -1,0 +1,46 @@
+- include_tasks: default.yaml
+
+- name: Run portainer
+  include_tasks: file='run_container.yaml'
+  vars:
+    image: 'portainer/portainer'
+    name: portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /docker_data/volumes/portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart_policy: always
+#    restart: yes
+#    recreate: yes
+    state: present
+    networks: "{{omit}}"
+
+#- fail:
+
+- name: Run redis
+  include_tasks: file='run_container.yaml'
+  vars:
+    image: redis
+    name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - /docker_data/volumes/redis_data:/data
+    command: ["redis-server", "--requirepass {{secrets.redis.password}}"]
+#    restart: yes
+#    recreate: yes
+    state: present
+    sysctls:
+      net.core.somaxconn: "1024"
+    expose: ["6379"]
+
+
+
+
+
+
+
+
+
+
