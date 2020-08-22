@@ -1,3 +1,0 @@
-- name: Install provision dependencies
-  pip:
-    requirements: "{{project_folder}}/provision/.requirements.txt"

@@ -29,12 +29,15 @@ cache_clear = "poetry cache clear"
 push = "git commit -a -m 'Update'; git push"
 
 ansible = "python ./provision/ansible_helper.py"
-build = "task ansible init; task docker_build"
+build = "task init; task docker_build"
+init = "task ansible play -p init"
+init_vault="task ansible play -p init_vault --no-vault"
 
-docker_build = "docker image build -t proj_1-staging:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/proj_1 /home/lgblkb/PycharmProjects/proj_1"
-docker_run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-staging:0.1.0"
-docker_runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-staging:0.1.0 bash"
 
+
+docker_build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/proj_1 /home/lgblkb/PycharmProjects/proj_1"
+docker_run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0"
+docker_runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0 bash"
 
 [tool.proj_1.tasks]
 docker_build = """

@@ -1,40 +1,11 @@
 - hosts: all
   become: no
-  vars:
-    secret_path: ".secret"
+  roles:
+    - base
+
   tasks:
-    - name: Check .secret existence
-      stat:
-        path: "{{secret_path}}"
-      register: secret_path_existence
-
-    - name: Generate ansible secret
-      shell: |
-        python3 -c "
-        import os
-        from secrets import choice
-        import string
-
-        password_length = 32
-        alphabet = string.ascii_letters + string.digits
-        password = ''.join(choice(alphabet) for i in range(password_length))
-
-        filename = '{{secret_path}}'
-        assert not os.path.exists(filename)
-        with open(filename, 'w') as file:
-            file.write(password)"
-      when: not secret_path_existence.stat.exists
-
-    - name: Run base tasks
-      import_role:
-        name: base
-
-
-
-
-
-
-    #    - debug: msg={{project_tasks}}
-#    - fail:
-
+    - name: Greetings
+      debug:
+        msg: "Project is initalized!!!"
+#    - debug: msg="{{toml_data}}"
 

@@ -53,20 +53,13 @@ def encrypt_decrypt(action, inventory, other_args):
 @main.command(context_settings=context_settings)
 @click.option("-i", "--inventory", default="development", show_default=True)
 @click.option('-p', '--playbook', default='playbook', show_default=True)
+@click.option('--vault/--no-vault', default=True, show_default=True)
 @click.argument('other_args', nargs=-1, type=click.UNPROCESSED)
-def play(inventory, playbook, other_args):
-    parts = ['ansible-playbook', *vault_parts,
-             '--inventory', f'provision/envs/{inventory}',
-             f'provision/{playbook}.yaml', *other_args,
-             ]
-    run_cmd_parts(parts)
-
-
-@main.command(context_settings=context_settings)
-@click.argument('other_args', nargs=-1, type=click.UNPROCESSED)
-def init(other_args):
-    parts = ['ansible-playbook', '--inventory', f'provision/envs/development',
-             'provision/init.yaml', *other_args, ]
+def play(inventory, playbook, vault, other_args):
+    parts = ['ansible-playbook']
+    if vault: parts.extend(vault_parts)
+    parts.extend(['--inventory', f'provision/envs/{inventory}'])
+    parts.extend([f'provision/{playbook}.yaml', *other_args])
     run_cmd_parts(parts)
 
 

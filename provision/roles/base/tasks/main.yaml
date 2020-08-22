@@ -1,16 +1,15 @@
-- name: Greetings
-  debug:
-    msg: "Salem Alem!!!"
-
-- include_tasks: install_reqs.yaml
+- name: Install provision dependencies
+  pip:
+    requirements: "{{project_folder}}/provision/.requirements.txt"
 
 - name: Read project info
   manage_toml:
-    path: "{{project_folder}}/pyproject.toml"
+    path: "{{master_project_folder}}/pyproject.toml"
     copy_as:
-      path: "{{project_folder}}/provision/.toml_info.yaml"
+      path: "{{master_project_folder}}/provision/.toml_info.yaml"
       method: to_yaml
   register: toml_meta
+  delegate_to: localhost
 
 - set_fact:
     project_info: "{{toml_meta.out.tool.poetry}}"
@@ -19,38 +18,26 @@
     image_tag: "{{project_info.version}}"
 - set_fact:
     image_fullname: "{{project_info.name}}-{{env_name}}:{{project_info.version}}"
-- eval:
-    expression: filepath.replace(project_folder,master_project_folder)
-    data:
-      master_project_folder: "{{master_project_folder}}"
-      project_folder: "{{project_folder}}"
-      filepath: "{{toml_meta.copy_as.path}}"
-  register: eval_meta
 
 - include_vars:
-    file: "{{eval_meta.out}}"
+    file: "{{toml_meta.copy_as.path}}"
     name: toml_data
-#- debug: msg={{toml_data.tool.taskipy.tasks}}
-#- fail:
-#- debug: msg={{'list(vars.keys())'|eval(vars=vars)}}
-#- debug: msg={{'vars["project_folder"]'|eval(vars=vars)}}
+- eval:
+    expression: |
+      for k,v in project_tasks.items():
+        project_tasks[k]=" ".join(map(str.strip, v.splitlines())).strip()
+    data:
+      project_tasks: "{{toml_data.tool[project_info.name].tasks}}"
+    out: project_tasks
+  register: eval_meta
+- set_fact:
+    project_tasks: "{{eval_meta.project_tasks}}"
+
 - name: Create project tasks
-  block:
-    - eval:
-        expression: |
-          for k,v in project_tasks.items():
-            project_tasks[k]=" ".join(map(str.strip, v.splitlines())).strip()
-        data:
-          project_tasks: "{{toml_data.tool[project_info.name].tasks}}"
-        out: project_tasks
-      register: eval_meta
-    - set_fact:
-        project_tasks: "{{eval_meta.project_tasks}}"
-    #    - debug: msg={{project_tasks}}
-    - manage_toml:
-        path: "{{project_folder}}/pyproject.toml"
-        data:
-          tool:
-            taskipy:
-              tasks: "{{project_tasks}}"
-      register: toml_meta
+  manage_toml:
+    path: "{{project_folder}}/pyproject.toml"
+    data:
+      tool:
+        taskipy:
+          tasks: "{{project_tasks}}"
+  when: ansible_connection=='local'
