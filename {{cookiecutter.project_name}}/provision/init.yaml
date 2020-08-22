@@ -1,0 +1,11 @@
+- hosts: all
+  become: no
+  roles:
+    - base
+
+  tasks:
+    - name: Greetings
+      debug:
+        msg: "Project is initalized!!!"
+#    - debug: msg="{{toml_data}}"
+
