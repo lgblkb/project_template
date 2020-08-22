@@ -15,7 +15,8 @@ docker = "^4.3.0"
 ansible = "^2.9.12"
 asteval = "^0.9.18"
 more-itertools = "^8.4.0"
-cookiecutter = "^1.7.2"
+click = "^7.1.2"
+jinja2 = "^2.11.2"
 
 
 [tool.poetry.dev-dependencies]
