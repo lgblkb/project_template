@@ -1,0 +1,22 @@
+- hosts: all
+  roles:
+    - base
+    - deploy_docker
+  
+  tasks:
+    - name: Run project
+      include_role: {name: deploy_docker, tasks_from: run_container.yaml}
+      vars:
+        image: "{{image_fullname}}"
+        name: "{{image_name}}"
+        env:
+          ENV_FOR_DYNACONF: "{{env_name}}"
+        volumes:
+          - "{{project_folder}}:{{project_folder}}"
+        working_dir: "{{project_folder}}"
+        command: "sleep 1000"
+        restart: yes
+
+    - name: Greetings!!!
+      debug:
+        msg: "Deployment successfull!!!"

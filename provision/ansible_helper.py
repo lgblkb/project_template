@@ -51,11 +51,11 @@ def encrypt_decrypt(action, inventory, other_args):
 # endregion
 
 @main.command(context_settings=context_settings)
+@click.argument('playbook')
 @click.option("-i", "--inventory", default="development", show_default=True)
-@click.option('-p', '--playbook', default='playbook', show_default=True)
 @click.option('--vault/--no-vault', default=True, show_default=True)
 @click.argument('other_args', nargs=-1, type=click.UNPROCESSED)
-def play(inventory, playbook, vault, other_args):
+def play(playbook, inventory, vault, other_args):
     parts = ['ansible-playbook']
     if vault: parts.extend(vault_parts)
     parts.extend(['--inventory', f'provision/envs/{inventory}'])

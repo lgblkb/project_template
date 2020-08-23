@@ -6,7 +6,6 @@
   #    - "devel_network"
   register: networks_info
 
-
 - set_fact:
     networks: >-
       {{'[dict(name=x.network.Name) for x in Box(networks_info).results]'|

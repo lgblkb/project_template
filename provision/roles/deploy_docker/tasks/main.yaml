@@ -1,14 +1,1 @@
-- include_tasks: default.yaml
-
-- name: Run project
-  include_tasks: file='run_container.yaml'
-  vars:
-    image: "{{image_fullname}}"
-    name: "{{image_name}}"
-    env:
-      ENV_FOR_DYNACONF: "{{env_name}}"
-    volumes:
-      - "{{project_folder}}:{{project_folder}}"
-    working_dir: "{{project_folder}}"
-    command: "sleep 1000"
-    restart: yes
+- include_tasks: create_networks.yaml

@@ -1,0 +1,7 @@
+- name: Read secrets
+  include_vars:
+    file: "{{master_project_folder}}/provision/envs/{{env_name}}/.secrets.yaml"
+    name: secrets
+
+- name: Build docker image
+  shell: "{{project_tasks.docker_build}}"

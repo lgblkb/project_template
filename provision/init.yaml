@@ -1,7 +1,9 @@
-- hosts: all
+- hosts: localhost
   become: no
   roles:
-    - base
+    - name: base
+      vars:
+        run_default_tasks: no
 
   tasks:
     - name: Greetings

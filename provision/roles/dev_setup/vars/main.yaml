@@ -1,4 +1,0 @@
-docker_data_dir: '/docker_data'
-redis:
-docker_login:
-secrets:

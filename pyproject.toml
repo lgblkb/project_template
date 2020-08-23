@@ -7,12 +7,13 @@ repository = "git@github.com:lgblkb/project_template.git"
 
 [tool.poetry.dependencies]
 python = "~3.8"
+poetry-githooks = "^1.1.2"
 
 
 [tool.poetry.dev-dependencies]
-python-box = { extras = ["ruamel.yaml", "toml"], version = "^5.1.0" }
+python-box = { extras = ["ruamel.yaml", "toml"], version = "<5" }
 taskipy = "^1.3.0"
-dynaconf = "^3.1.0"
+dynaconf = { extras = ["all"], version = "<3.1" }
 tomlkit = "^0.7.0"
 docker = "^4.3.0"
 ansible = "^2.9.12"
@@ -22,19 +23,18 @@ jinja2 = "^2.11.2"
 click = "^7.1.2"
 pyyaml = "^5.3.1"
 
-
 [tool.taskipy.tasks]
-export = "poetry update; poetry export --without-hashes -f requirements.txt > requirements.txt"
-export_base = "cp requirements.txt requirements_base.txt"
-pre_export_base = "task export;"
+export = "poetry update --lock; poetry export --without-hashes -f requirements.txt > requirements.txt"
+export_base = "task export; cp requirements.txt requirements_base.txt"
 cache_clear = "poetry cache clear"
 push = "git commit -a -m 'Update'; git push"
 
 ansible = "python ./provision/ansible_helper.py"
-build = "task export; task init; task docker_build"
-init = "task ansible play -p init"
-init_vault = "task ansible play -p init_vault --no-vault"
-
+build = "task init; task docker_build"
+init = "task ansible play init"
+init_vault = "task ansible play init_vault --no-vault"
+infrastructure = "task ansible play infrastructure"
+deploy = "task ansible play deploy"
 docker_build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/proj_1 /home/lgblkb/PycharmProjects/proj_1"
 docker_run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0"
 docker_runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0 bash"
@@ -71,3 +71,6 @@ docker run -it --rm
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.githooks]
+pre-commit = "task ansible encrypt all"

@@ -1,0 +1,67 @@
+- hosts: all
+  roles:
+    - base
+    - deploy_docker
+  tasks:
+    - name: Run portainer
+      include_role: {name: deploy_docker, tasks_from: run_container.yaml}
+      vars:
+        image: 'portainer/portainer'
+        name: portainer
+        ports:
+          - "9000:9000"
+        volumes:
+          - /docker_data/volumes/portainer_data:/data
+          - /var/run/docker.sock:/var/run/docker.sock
+        restart_policy: always
+        #    restart: yes
+        #    recreate: yes
+        #    state: present
+        networks: "{{omit}}"
+
+    #- fail:
+
+    - name: Run redis
+      include_role: {name: deploy_docker, tasks_from: run_container.yaml}
+      vars:
+        image: redis
+        name: redis
+        ports:
+          - "6379:6379"
+        volumes:
+          - /docker_data/volumes/redis_data:/data
+        command: ["redis-server", "--requirepass {{secrets.redis.password}}"]
+        #    restart: yes
+        #    recreate: yes
+        #    state: star
+        sysctls:
+          net.core.somaxconn: "1024"
+        expose: ["6379"]
+
+      # --no-postgres-port
+      # --no-ui-port
+      # --no-server-port
+
+    - name: Run prefect
+      shell: >-
+        prefect backend server;
+        screen -XS prefect_server quit;
+        screen -mdS prefect_server
+        prefect server start
+        --postgres-port {{prefect.ports.postgres}}
+        --hasura-port {{prefect.ports.hasura}}
+        --graphql-port {{prefect.ports.graphql}}
+        --ui-port {{prefect.ports.ui}}
+        --server-port {{prefect.ports.server}}
+        --no-hasura-port
+        --no-graphql-port
+        --use-volume;
+
+
+
+
+
+
+
+
+
