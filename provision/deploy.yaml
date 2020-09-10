@@ -1,21 +1,42 @@
 - hosts: all
   roles:
-    - base
-    - deploy_docker
-  
+    - name: base
   tasks:
-    - name: Run project
-      include_role: {name: deploy_docker, tasks_from: run_container.yaml}
-      vars:
-        image: "{{image_fullname}}"
-        name: "{{image_name}}"
-        env:
-          ENV_FOR_DYNACONF: "{{env_name}}"
-        volumes:
-          - "{{project_folder}}:{{project_folder}}"
-        working_dir: "{{project_folder}}"
-        command: "sleep 1000"
-        restart: yes
+    - include_tasks: { file: 'service_tasks/service.yaml' }
+      vars: { service_options: "{{item}}" }
+      loop:
+        #        - name: yield_pred_trigger
+        #          celery_worker:
+        #
+        #        - name: main
+        #          command: python -m app.main
+        #
+        #        - name: meteo_scheduler
+        #          command: python -m app.weather.scheduled_jobs
+        #        - name: histogram_scheduler
+        #          command: python -m app.histograms.scheduled_jobs
+        #
+        #        - name: histograms
+        #          command: python -m app.histograms.histograms
+        #
+        #        - name: weather
+        #          command: python -m app.weather.weather
+        #
+        #        - name: static_data
+        #          command: python -m app.static_features.static_data
+        #        - name: ph_data_generator
+        #          command: python -m app.static_features.scheduled_jobs.ph
+        #        - name: elevation_data_generator
+        #          command: python -m app.static_features.scheduled_jobs.elevation
+        #        - name: soil_data_generator
+        #          command: python -m app.static_features.scheduled_jobs.soil
+        #
+        #        - name: collector
+        #          command: python -m app.collector.collector
+
+        - name: yield_predictor
+          command: python -m app.predictor
+
 
     - name: Greetings!!!
       debug:

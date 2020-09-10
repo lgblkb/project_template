@@ -1,7 +1,0 @@
-prefect:
-  ports:
-    postgres: 5435
-    hasura: 3001
-    graphql: 4001
-    ui: 8097
-    server: 4200

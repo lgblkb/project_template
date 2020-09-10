@@ -1,13 +1,11 @@
-- hosts: localhost
+- hosts: all
   become: no
   roles:
     - name: base
       vars:
-        run_default_tasks: no
-
+        build_docker_image: no
   tasks:
     - name: Greetings
       debug:
         msg: "Project is initalized!!!"
-#    - debug: msg="{{toml_data}}"
 

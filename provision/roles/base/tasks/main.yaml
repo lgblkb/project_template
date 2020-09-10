@@ -1,67 +1,23 @@
-- name: Pull the project
-  block:
-    - name: Read project info
-      manage_toml:
-        path: "{{master_project_folder}}/pyproject.toml"
-      register: master_toml_meta
-      delegate_to: localhost
+- name: Generate ansible secret
+  include_tasks:
+    file: "initial/generate_ansible_secret.yaml"
+    apply: { tags: [ 'init_vault','init' ] }
+  tags: [ 'init_vault','init' ]
+  when: ansible_connection=='local'
 
-    - name: Pull from git
-      git:
-        repo: "{{master_toml_meta.out.tool.poetry.repository}}"
-        dest: "{{project_folder}}"
-        accept_hostkey: yes
-        key_file: "~/.ssh/server_rsa"
-        force: yes
+- include_tasks: initial/pull_project.yaml
   when: ansible_connection!='local'
 
 - name: Install provision dependencies
   pip:
-    requirements: "{{project_folder}}/provision/.requirements.txt"
+    requirements: "{{project_folder}}/provision/roles/base/files/.requirements.txt"
+  tags: [ 'install_deps','init' ]
 
-- name: Read project info
-  manage_toml:
-    path: "{{master_project_folder}}/pyproject.toml"
-    copy_as:
-      path: "{{master_project_folder}}/provision/.toml_info.yaml"
-      method: to_yaml
-  register: toml_meta
-  delegate_to: localhost
+- include_tasks: initial/extract_project_info.yaml
+- include_tasks: initial/generate_settings.yaml
+- include_tasks: generate_project_tasks.yaml
 
-- set_fact:
-    project_info: "{{toml_meta.out.tool.poetry}}"
-- set_fact:
-    image_name: "{{project_info.name}}-{{env_name}}"
-    image_tag: "{{project_info.version}}"
-- set_fact:
-    image_fullname: "{{project_info.name}}-{{env_name}}:{{project_info.version}}"
+- name: Build docker image
+  shell: "{{project_tasks.docker_build}}"
+  when: build_docker_image
 
-- include_vars:
-    file: "{{toml_meta.copy_as.path}}"
-    name: toml_data
-- eval:
-    expression: |
-      for k,v in project_tasks.items():
-        project_tasks[k]=" ".join(map(str.strip, v.splitlines())).strip()
-    data:
-      project_tasks: "{{toml_data.tool.project.tasks}}"
-    out: project_tasks
-  register: eval_meta
-- set_fact:
-    project_tasks: "{{eval_meta.project_tasks}}"
-
-- name: Create project tasks
-  manage_toml:
-    path: "{{project_folder}}/pyproject.toml"
-    data:
-      tool:
-        taskipy:
-          tasks: "{{project_tasks}}"
-  when: ansible_connection=='local'
-
-#- debug: msg="{{run_default_tasks}}"
-#- fail:
-- name: Run default tasks
-  include_tasks:
-    file: default.yaml
-  when: run_default_tasks

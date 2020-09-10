@@ -7,11 +7,11 @@ repository = "git@github.com:lgblkb/project_template.git"
 
 [tool.poetry.dependencies]
 python = "~3.8"
-poetry-githooks = "^1.1.2"
+boltons = "^20.2.1"
 
 
 [tool.poetry.dev-dependencies]
-python-box = { extras = ["ruamel.yaml", "toml"], version = "<5" }
+python-box = { extras = ["ruamel.yaml", "toml"], version = "^5" }
 taskipy = "^1.3.0"
 dynaconf = { extras = ["all"], version = "<3.1" }
 tomlkit = "^0.7.0"
@@ -22,22 +22,43 @@ more-itertools = "^8.4.0"
 jinja2 = "^2.11.2"
 click = "^7.1.2"
 pyyaml = "^5.3.1"
+cryptography = "^3.1"
 
 [tool.taskipy.tasks]
+commit = "task ansible encrypt all; git commit -am"
+post_commit = "task ansible decrypt all;"
 export = "poetry update --lock; poetry export --without-hashes -f requirements.txt > requirements.txt"
 export_base = "task export; cp requirements.txt requirements_base.txt"
 cache_clear = "poetry cache clear"
-push = "git commit -a -m 'Update'; git push"
 
-ansible = "python ./provision/ansible_helper.py"
-build = "task init; task docker_build"
-init = "task ansible play init"
-init_vault = "task ansible play init_vault --no-vault"
+ansible = "python provision/roles/base/files/ansible_helper.py"
+build = "task base; task docker_build"
+init = "task ansible play base --no-vault --tags init -i development"
+base = "task ansible play base --skip-tags init"
 infrastructure = "task ansible play infrastructure"
 deploy = "task ansible play deploy"
-docker_build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/proj_1 /home/lgblkb/PycharmProjects/proj_1"
-docker_run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0"
-docker_runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/PycharmProjects/proj_1:/home/lgblkb/PycharmProjects/proj_1 -w /home/lgblkb/PycharmProjects/proj_1 proj_1-development:0.1.0 bash"
+
+docker_build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/project_template /home/lgblkb/PycharmProjects/project_template"
+run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -v /home/lgblkb/caches/YieldPrediction/:/home/lgblkb/caches/YieldPrediction/ -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 python -m"
+runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 bash"
+
+[tool.project]
+encrypted = [
+    'provision/templates/**/*.yaml',
+    'provision/infrastructure_services/*.yaml'
+]
+
+[tool.project.env_data.default]
+infrastructure_services.toggle = [
+    'portainer',
+    'redis',
+    'postgis_imagination',
+    'postgis_yield_prediction'
+]
+[tool.project.env_data.production]
+infrastructure_services.toggle = [
+    'postgis_yield_prediction'
+]
 
 [tool.project.tasks]
 docker_build = """
@@ -50,20 +71,23 @@ docker image build -t {{image_fullname}}
                   {{project_folder}}
 """
 
-docker_run = """
+run = """
 docker run -it --rm
             --env-file .env
-            -v {{project_folder|quote}}:{{project_folder|quote}}
-            -w {{project_folder|quote}}
+            -v {{project_folder}}:{{project_folder}}
+            -v {{settings.PROJECT.dirs.cache_folder}}:{{settings.PROJECT.dirs.cache_folder}}
+            -w {{project_folder}}
             {{image_fullname}}
+            python -m
+
 """
 
-docker_runit = """
+runit = """
 docker run -it --rm
             --user root
             --env-file .env
-            -v {{project_folder|quote}}:{{project_folder|quote}}
-            -w {{project_folder|quote}}
+            -v {{project_folder}}:{{project_folder}}
+            -w {{project_folder}}
             {{image_fullname}}
             bash
 """
@@ -71,6 +95,3 @@ docker run -it --rm
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
-
-[tool.githooks]
-pre-commit = "task ansible encrypt all"

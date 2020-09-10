@@ -31,7 +31,8 @@ RUN pip3 install -U pip wheel setuptools numpy &&\
 
 FROM base as builder
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
-    ansible sshpass &&\
+    ansible sshpass \
+    libeccodes0 &&\
     pip3 install poetry ansible &&\
     ansible-galaxy install lgblkb.lgblkb_deployer
 
@@ -47,9 +48,9 @@ RUN groupadd -g ${GROUP_ID} ${USERNAME} &&\
      ${USER_ID}:${GROUP_ID} \
         /home/${USERNAME}
 
-COPY provision/.requirements.txt .
-RUN pip3 install --no-cache-dir -r .requirements.txt
 
+COPY provision/roles/base/files/.requirements.txt .
+RUN pip3 install --no-cache-dir -r .requirements.txt
 COPY requirements_base.txt .
 RUN pip3 install --no-cache-dir -r requirements_base.txt
 COPY requirements.txt .
@@ -58,9 +59,6 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 USER ${USERNAME}
 
 FROM base as production
-COPY requirements_base.txt .
-RUN pip3 install --no-cache-dir -r requirements_base.txt
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-WORKDIR /app

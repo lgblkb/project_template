@@ -76,15 +76,41 @@ from asteval import Interpreter
 from pathlib import PurePath
 from box import Box
 import textwrap
+import copy
+import ast
+import functools
+import boltons.iterutils
+import re
 
-a = Interpreter(usersyms=dict(string=string, it=it, mit=mit,
-                              Path=PurePath, Box=Box))
+
+def merge(obj1, obj2):
+    """
+    run me with nosetests --with-doctest file.py
+
+    >>> a = { 'first' : { 'all_rows' : { 'pass' : 'dog', 'number' : '1' } } }
+    >>> b = { 'first' : { 'all_rows' : { 'fail' : 'cat', 'number' : '5' } } }
+    >>> merge(a, b) == { 'first' : { 'all_rows' : { 'pass' : 'dog', 'fail' : 'cat', 'number' : '5' } } }
+    True
+    """
+    for key, value in obj2.items():
+        if isinstance(value, dict):
+            # get node or create one
+            node = obj1.setdefault(key, {})
+            merge(node, value)
+        else:
+            obj1[key] = value
+
+    return obj1
+
+
+a = Interpreter(usersyms=dict(string=string, it=it, mit=mit, copy=copy, ast=ast, boltons=boltons,
+                              Path=PurePath, Box=Box, merge=merge, functools=functools, re=re))
 
 
 def run_module():
     module_args = dict(
         expression=dict(type='str', required=True),
-        out=dict(type='str', required=False, default=''),
+        out=dict(type='raw', required=False, default=None),
         data=dict(type='dict', required=False, default={}),
     )
 
@@ -99,11 +125,23 @@ def run_module():
 def evaluate(params: dict):
     params = Box(params)
     a.symtable.update(params.data)
-    out = a(textwrap.dedent(params.expression))
-    if params.out: out = a.symtable[params.out]
+    eval_out = a(textwrap.dedent(params.expression))
+    target_out = params.get('out')
+    outs = dict()
+    if target_out:
+        if type(target_out) is str:
+            target_outs = [target_out]
+        elif isinstance(target_out, list):
+            target_outs = target_out
+        else:
+            raise NotImplementedError(str(type(target_out)))
+        for target_out in target_outs:
+            outs[target_out] = a.symtable[target_out]
+    else:
+        outs['out'] = eval_out
 
     result = params.copy()
-    result.update(changed=False, **{(params.out or 'out'): out})
+    result.update(changed=False, **outs)
     return result.to_dict()
 
 
