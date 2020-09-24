@@ -12,8 +12,10 @@
     file: "{{data_path}}"
     name: data
   when: data_path is defined
+
 #- debug: msg="{{{'the_data':(rddi.data|bool)|ternary(rddi.data,data)}}}"
 #- debug: msg="{{{'merge_items':rddi.merge_items}}}"
+
 - eval:
     expression: |
       data = Box([kv for kv in data.items() if kv[0] in project_envs + ['default']])
@@ -49,8 +51,12 @@
     out:
       - out_data
       - fact_key
+  #      - env_data
+  #      - data
   register: eval_meta
 #- debug: msg="{{{eval_meta.fact_key:eval_meta.out_data}}}"
+#- debug: msg="{{{'env_data':eval_meta.env_data}}}"
+#- debug: msg="{{{'data':eval_meta.data}}}"
 - set_fact:
     "{{eval_meta.fact_key}}": "{{eval_meta.out_data}}"
 

@@ -50,14 +50,14 @@ encrypted = [
 
 [tool.project.env_data.default]
 infrastructure_services.toggle = [
-    'portainer',
-    'redis',
-    'postgis_imagination',
-    'postgis_yield_prediction'
+#    'portainer',
+#    'redis',
+#    'postgis_imagination',
+#    'postgis_yield_prediction'
 ]
 [tool.project.env_data.production]
 infrastructure_services.toggle = [
-    'postgis_yield_prediction'
+#    'postgis_yield_prediction'
 ]
 
 [tool.project.tasks]

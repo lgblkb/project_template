@@ -11,6 +11,7 @@ ENV LANG=C.UTF-8 \
 
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    nano \
     build-essential \
     python3.8-dev \
     software-properties-common \
