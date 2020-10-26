@@ -2,13 +2,11 @@ all:
   hosts:
     localhost:
       ansible_connection: local
-      ansible_python_interpreter: "/home/lgblkb/.cache/pypoetry/virtualenvs/egistic-yield-predictor-bAj3jwu4-py3.8/bin/python"
-      become: no
-
+      ansible_python_interpreter: "/usr/bin/python3"
+      project_folder: "{{playbook_dir|dirname}}"
   vars:
     env_name: "development"
-    build_target: "builder"
-    project_folder: "{{playbook_dir|dirname}}"
+
 
 
 

@@ -19,5 +19,5 @@
 
 - name: Build docker image
   shell: "{{project_tasks.docker_build}}"
-  when: build_docker_image
+  when: build_docker_image|bool
 

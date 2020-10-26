@@ -45,19 +45,13 @@ runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/Pycharm
 [tool.project]
 encrypted = [
     'provision/templates/**/*.yaml',
-    'provision/infrastructure_services/*.yaml'
+    'provision/infrastructure_services/*.yaml',
+    'provision/envs/*.yaml'
 ]
 
 [tool.project.env_data.default]
 infrastructure_services.toggle = [
-#    'portainer',
-#    'redis',
-#    'postgis_imagination',
-#    'postgis_yield_prediction'
-]
-[tool.project.env_data.production]
-infrastructure_services.toggle = [
-#    'postgis_yield_prediction'
+    #    'portainer'
 ]
 
 [tool.project.tasks]
