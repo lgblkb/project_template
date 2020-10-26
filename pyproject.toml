@@ -34,7 +34,7 @@ runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/Pycharm
 encrypted = [
     'provision/templates/**/*.yaml',
     'provision/infrastructure_services/*.yaml',
-    'provision/envs/*.yaml'
+    'rclone_configs/*'
 ]
 
 [tool.project.env_data.default]
