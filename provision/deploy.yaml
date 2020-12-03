@@ -1,12 +1,18 @@
 - hosts: all
   roles:
     - name: base
+  vars:
+    build_docker_image: yes
+    show_container_details: no
+    launch_container: yes
   tasks:
-    - include_tasks: { file: 'service_tasks/service.yaml' }
+    - include_tasks: { file: 'service_tasks/celery_worker.yaml' }
       vars: { service_options: "{{item}}" }
+      when: env_name==service_options.env_name|default(env_name)
       loop:
-        - name: project_tester
-          command: python -m app
+        - name: "tester"
+          command: "python -m app"
+          state: present
 
     - name: Greetings!!!
       debug:

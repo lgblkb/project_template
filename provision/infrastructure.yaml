@@ -5,5 +5,6 @@
     build_docker_image: no
     show_container_details: no
     launch_container: yes
+
   tasks:
     - include_role: { name: base, tasks_from: infrastructure.yaml }
