@@ -27,8 +27,8 @@ base = "task ansible play base --skip-tags init"
 infrastructure = "task ansible play infrastructure"
 deploy = "task ansible play deploy"
 
-docker_build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/project_template /home/lgblkb/PycharmProjects/project_template"
-run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -v /home/lgblkb/caches/YieldPrediction/:/home/lgblkb/caches/YieldPrediction/ -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 python -m"
+docker_build = "docker image build -t proj_1-development:0.1.0 --target base --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/project_template /home/lgblkb/PycharmProjects/project_template"
+run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -v /home/lgblkb/caches/proj_1:/home/lgblkb/caches/proj_1 -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 python -m"
 runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 bash"
 
 [tool.project]

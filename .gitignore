@@ -147,3 +147,5 @@ cython_debug/
 .secret
 provision/.toml_info.yaml
 /provision/roles/base/files/.toml_info.yaml
+/settings.yaml
+provision/watched/
