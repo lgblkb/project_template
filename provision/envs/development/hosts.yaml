@@ -6,6 +6,7 @@ all:
       project_folder: "{{playbook_dir|dirname}}"
   vars:
     env_name: "development"
+    build_target: 'builder'
 
 
 

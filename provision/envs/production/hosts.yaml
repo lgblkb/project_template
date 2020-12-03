@@ -5,8 +5,10 @@ all:
       ansible_user: egistic_db
       ansible_python_interpreter: "/usr/bin/python3.8"
       project_folder: [ Not defined ]
+      key_file: "~/.ssh/lgblkb_rsa"
   vars:
     env_name: "production"
+    build_target: 'builder'
 
 
 

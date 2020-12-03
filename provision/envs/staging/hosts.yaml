@@ -5,8 +5,10 @@ all:
       ansible_user: lgblkb
       ansible_python_interpreter: "/usr/bin/python3"
       project_folder: [ Not defined ]
+      key_file: "~/.ssh/server_rsa"
   vars:
     env_name: "staging"
+    build_target: 'builder'
 
 
 
