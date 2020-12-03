@@ -1,10 +1,14 @@
 - name: Creating infra
   include_tasks: read_dyna_data.yaml
-  vars: { data_path: 'templates/infra.yaml', set_to: infra }
+  vars:
+    data_path: 'templates/infra.yaml'
+    set_to: infra
 
 - name: Creating project_data
   include_tasks: read_dyna_data.yaml
-  vars: { data: "{{project_info.env_data}}", set_to: project_data }
+  vars:
+    data: "{{project_info.env_data}}"
+    set_to: project_data
 
 - name: Creating settings
   include_tasks: read_dyna_data.yaml
@@ -21,7 +25,9 @@
 
 - name: Creating docker_default
   include_tasks: read_dyna_data.yaml
-  vars: { data_path: 'templates/docker/default.yaml', set_to: docker_default }
+  vars:
+    data_path: 'templates/docker/default.yaml'
+    set_to: docker_default
 
 - name: Creating docker_infra
   include_tasks: read_dyna_data.yaml

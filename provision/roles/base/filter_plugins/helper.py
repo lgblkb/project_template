@@ -1,17 +1,17 @@
 #!/usr/bin/python
+import ast
 import copy
+import functools
+import glob
 import itertools as it
 import string
 from pathlib import PurePath
 
+import boltons
 import more_itertools as mit
 from asteval import Interpreter
 from boltons.iterutils import remap
 from box import Box
-import ast
-import functools
-import boltons
-import sys
 
 
 def merge(obj1, obj2):
@@ -35,8 +35,8 @@ def merge(obj1, obj2):
     return obj1
 
 
-a = Interpreter(usersyms=dict(string=string, it=it, mit=mit, copy=copy, ast=ast, boltons=boltons,
-                              Path=PurePath, Box=Box, merge=merge, functools=functools))
+a = Interpreter(usersyms=dict(string=string, it=it, mit=mit, copy=copy, ast=ast, boltons=boltons, bool=bool,
+                              Path=PurePath, Box=Box, merge=merge, functools=functools, glob=glob))
 
 import re
 

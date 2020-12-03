@@ -80,7 +80,7 @@ import copy
 import ast
 import functools
 import boltons.iterutils
-import re
+import glob
 
 
 def merge(obj1, obj2):
@@ -103,8 +103,8 @@ def merge(obj1, obj2):
     return obj1
 
 
-a = Interpreter(usersyms=dict(string=string, it=it, mit=mit, copy=copy, ast=ast, boltons=boltons,
-                              Path=PurePath, Box=Box, merge=merge, functools=functools, re=re))
+a = Interpreter(usersyms=dict(string=string, it=it, mit=mit, copy=copy, ast=ast, boltons=boltons, bool=bool,
+                              Path=PurePath, Box=Box, merge=merge, functools=functools, glob=glob))
 
 
 def run_module():

@@ -37,4 +37,4 @@
       loop: >-
         {{'list(infos.values())'|eval(infos=lookup('vars',pdi.config_name+'_infos'))}}
       loop_control: { loop_var: container_info }
-  when: "{{lookup('vars',pdi.config_name,default=False)|bool}}"
+  when: "{{'bool(d)'|eval(d=lookup('vars',pdi.config_name,default=False))}}"
