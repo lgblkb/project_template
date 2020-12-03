@@ -20,11 +20,6 @@
       when: so.celery_worker is defined
   vars: { so: "{{service_options}}" }
 
-#- include_role: { name: base, tasks_from: read_dyna_data.yaml }
-#  vars:
-#    data_path: 'templates/service.yaml'
-#    set_to: service
-
 - include_role: { name: base, tasks_from: read_dyna_data.yaml }
   vars:
     data: "{{{env_name:docker.service}}}"

@@ -1,0 +1,60 @@
+default:
+  imagiflow_db:
+    #    image: "kartoza/postgis:13.0"
+    image: "mdillon/postgis:11"
+    name: "{{infra.DB.host}}"
+    command: postgres -c "max_connections=500"
+    volumes:
+      - /docker_data/volumes/imagiflow_db:/var/lib/postgresql
+    env:
+      ALLOW_IP_RANGE: "0.0.0.0/0"
+      #      DEFAULT_ENCODING: "UTF8"
+      #      POSTGRES_USER: "{{infra.DB.username}}"
+      #      POSTGRES_PASS: "{{infra.DB.password}}"
+      #      POSTGRES_DBNAME: "{{infra.DB.database}}"
+      #      POSTGRES_MULTIPLE_EXTENSIONS: "postgis,hstore,postgis_topology"
+      #      DEFAULT_COLLATION: "en_US.UTF-8"
+      #      DEFAULT_CTYPE: "en_US.UTF-8"
+      POSTGRES_DB: "{{infra.DB.database}}"
+      POSTGRES_USER: "{{infra.DB.database}}"
+      POSTGRES_PASSWORD: "{{infra.DB.password}}"
+    ports:
+      - "5439:5432"
+
+  redis:
+    image: "bitnami/redis:6.0.9"
+    name: "{{infra.REDIS.host}}"
+    command: "/opt/bitnami/scripts/redis/run.sh --maxmemory 100mb"
+    env:
+      REDIS_PASSWORD: "{{infra.REDIS.password}}"
+    sysctls:
+      net.core.somaxconn: "1024"
+    ports: #todo: remove
+      - "6378:6379"
+
+  imagiflow_rabbitmq:
+    image: "rabbitmq:3.8.9-management"
+    name: "{{infra.RABBITMQ.hostname}}"
+    env:
+      RABBITMQ_DEFAULT_USER: "{{infra.RABBITMQ.user}}"
+      RABBITMQ_DEFAULT_PASS: "{{infra.RABBITMQ.password}}"
+    ports:
+      - "15673:15672"
+
+  imagiflow_flower:
+    image: "gregsi/latest-celery-flower-docker"
+    name: imagiflow_flower
+    ports:
+      - "5556:5555"
+    env:
+      FLOWER_PORT: "5555"
+      AMQP_USERNAME: "{{infra.RABBITMQ.user}}"
+      AMQP_PASSWORD: "{{infra.RABBITMQ.password}}"
+      AMQP_HOST: "{{infra.RABBITMQ.hostname}}"
+      AMQP_PORT: "{{infra.RABBITMQ.port}}"
+      AMQP_ADMIN_USERNAME: "{{infra.RABBITMQ.user}}"
+      AMQP_ADMIN_PASSWORD: "{{infra.RABBITMQ.password}}"
+      AMQP_ADMIN_HOST: "{{infra.RABBITMQ.hostname}}"
+      AMQP_ADMIN_PORT: "15673"
+      FLOWER_MAX_TASKS: "36000"
+      FLOWER_BASIC_AUTH: "{{infra.RABBITMQ.user}}:{{infra.RABBITMQ.password}}"

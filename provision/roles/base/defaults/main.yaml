@@ -2,4 +2,3 @@ build_docker_image: yes
 launch_container: yes
 vault_secret_path: "{{role_path}}/files/.secret"
 build_target: "base"
-become: no
