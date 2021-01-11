@@ -1,0 +1,37 @@
+- set_fact:
+    cont_info: "{{container_info}}"
+
+- name: Set celery_worker command
+  block:
+    - celery_worker:
+        container_info: "{{cont_info}}"
+        container_vars: "{{container_vars}}"
+      register: out
+    - set_fact:
+        cont_info: "{{out.container_info}}"
+  when: container_vars.celery_worker|default(False)
+
+#- debug: msg="{{cont_info}}"
+#- fail:
+
+- name: Set watchdog
+  block:
+    - set_watchdog:
+        watch_dir: "{{project_folder}}/watched"
+        container_info: "{{cont_info}}"
+        watchdog: "{{container_vars.watchdog}}"
+      register: out
+    - set_fact:
+        cont_info: "{{out.container_info}}"
+  when: container_vars.watchdog|default(False)
+
+
+
+- name: Show container details
+  debug: msg="{{cont_info}}"
+  when: show_container_details
+#- fail:
+
+- name: "Launch container"
+  docker_container: "{{cont_info}}"
+  when: launch_container

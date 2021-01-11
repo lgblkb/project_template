@@ -1,10 +1,10 @@
 all:
   hosts:
     lgblkb_lab:
-      ansible_host: 192.168.1.193
+      ansible_host: 192.168.1.196
       ansible_user: lgblkb
       ansible_python_interpreter: "/usr/bin/python3"
-      project_folder: [ Not defined ]
+      project_folder: "/home/lgblkb/projects/project_template"
       key_file: "~/.ssh/server_rsa"
   vars:
     env_name: "staging"

@@ -1,0 +1,18 @@
+- hosts: all
+  vars:
+    build_docker_image: yes
+    show_container_details: no
+    launch_container: no
+  tasks:
+    - include_role: { name: lgblkb, tasks_from: base }
+
+    - name: 'Create project networks'
+      docker_network: "{{item}}"
+      loop: "{{docker.infra.networks|default([])}}"
+
+    - include_role: { name: lgblkb, tasks_from: deploy }
+      loop_control: { loop_var: switch_info }
+      with_dict:
+        infra_switch: deploy_switches/infra.yaml
+
+    - debug: msg="Deployment successfull!"

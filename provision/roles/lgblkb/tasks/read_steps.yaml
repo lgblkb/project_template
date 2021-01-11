@@ -1,0 +1,15 @@
+- name: Read settings
+  include_tasks: envise.yaml
+  with_dict: "{{step.value.targets}}"
+  loop_control: { loop_var: param }
+  vars: { input_file: "settings/{{param.value}}", set_to: "{{param.key}}" }
+
+- name: Merge settings
+  with_dict: "{{step.value.merge}}"
+  loop_control: { loop_var: param }
+  set_fact:
+    "{{param.key}}": >-
+      {{'Box(a)+Box(b)'|eval(
+      a=lookup('vars',param.value[0]),
+      b=lookup('vars',param.value[1])
+      )}}

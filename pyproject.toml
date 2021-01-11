@@ -7,6 +7,19 @@ repository = "git@github.com:lgblkb/project_template.git"
 
 [tool.poetry.dependencies]
 python = "~3.8"
+toml = "^0.10.2"
+asteval = "^0.9.21"
+boltons = "^20.2.1"
+click = "^7.1.2"
+more-itertools = "^8.6.0"
+python-box = "^5.2.0"
+pyyaml = "^5.3.1"
+"ruamel.yaml" = "^0.16.12"
+taskipy = "^1.6.0"
+tomlkit = "^0.7.0"
+jinja2 = "^2.11.2"
+watchdog = "^1.0.2"
+argh = "^0.26.2"
 
 
 [tool.poetry.dev-dependencies]
@@ -15,38 +28,32 @@ python = "~3.8"
 [tool.taskipy.tasks]
 commit = "task ansible encrypt all; git commit -am"
 post_commit = "task ansible decrypt all;"
-export = "poetry update --lock; poetry export --without-hashes -f requirements.txt > requirements.txt"
+export = "poetry update; poetry export --without-hashes -f requirements.txt > requirements.txt"
 export_base = "task export; cp requirements.txt requirements_base.txt"
 cache_clear = "poetry cache clear"
 
-ansible = "python provision/roles/base/files/ansible_helper.py"
+ansible = "python provision/roles/lgblkb/files/ansible_helper.py"
 build = "task base; task docker_build"
-init = "task ansible play base --no-vault --tags init -i development"
-pre_init = "touch .env && pip install -r provision/roles/base/files/.requirements.txt"
-base = "task ansible play base --skip-tags init"
-infrastructure = "task ansible play infrastructure"
-deploy = "task ansible play deploy"
+init = "task ansible play init --no-vault"
+pre_init = "touch .env && pip install -r provision/roles/lgblkb/files/.requirements.txt"
+base = "task ansible play base"
+infra = "task ansible play infra"
+service = "task ansible play service"
 pre_runit = "xhost +"
 
-docker_build = "docker image build -t proj_1-development:0.1.0 --target base --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/project_template /home/lgblkb/PycharmProjects/project_template"
-run = "docker run -it --rm --env-file .env -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -v /home/lgblkb/caches/proj_1:/home/lgblkb/caches/proj_1 -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 python -m"
-runit = "docker run -it --rm --user root --env-file .env -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 bash"
+docker_build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/project_template /home/lgblkb/PycharmProjects/project_template"
+rootit = "docker run -it --rm --user root --env-file .env --network proj_1_network -v /home/lgblkb/caches/proj_1:/home/lgblkb/caches/proj_1 -v /home/lgblkb/data/proj_1:/home/lgblkb/data/proj_1 -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 bash"
+run = "docker run -it --rm --env-file .env --network proj_1_network -v /home/lgblkb/caches/proj_1:/home/lgblkb/caches/proj_1 -v /home/lgblkb/data/proj_1:/home/lgblkb/data/proj_1 -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 python -m"
+runit = "docker run -it --rm --env-file .env --env \"DISPLAY\" --env ENV_FOR_DYNACONF=development --env MPLCONFIGDIR=/home/lgblkb/caches/proj_1 --env GDAL_CACHEMAX=2048 --env FLASK_APP=app/server.py --volume=\"/etc/group:/etc/group:ro\" --volume=\"/etc/passwd:/etc/passwd:ro\" --volume=\"/etc/shadow:/etc/shadow:ro\" --volume=\"/etc/sudoers.d:/etc/sudoers.d:ro\" --volume=\"/tmp/.X11-unix:/tmp/.X11-unix:rw\" --network proj_1_network -v /home/lgblkb/caches/proj_1:/home/lgblkb/caches/proj_1 -v /home/lgblkb/data/proj_1:/home/lgblkb/data/proj_1 -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 bash"
 
 [tool.project]
 encrypted = [
-    'provision/templates/**/*.yaml',
-    'provision/infrastructure_services/*.yaml',
+    'provision/settings/**/*.yaml',
+    'provision/containers/**/*.yaml',
+    'provision/deploy_switches/**/*.yaml',
     'rclone_configs/*'
 ]
 
-[tool.project.env_data.default]
-infrastructure_services.toggle = [
-    'portainer',
-]
-[tool.project.env_data.production]
-infrastructure_services.toggle = [
-    #    'base',
-]
 [tool.project.tasks]
 docker_build = """
 docker image build -t {{image_fullname}}
@@ -61,7 +68,7 @@ docker image build -t {{image_fullname}}
 run = """
 docker run -it --rm
             --env-file .env
-            {{ "'--network '+n['name'] if n else ''"|eval(n=docker.infra.networks[0]|default({})) }}
+            {{ "'--network '+n['name'] if n else ''"|eval(n=docker_infra.networks[0]|default({})) }}
             {{"' '.join([ '-v '+':'.join([v,v]) for v in list(vs.values())+[project_folder] ])"
             |eval(vs=settings.PROJECT.dirs,project_folder=project_folder)}}
             -w {{project_folder}}
@@ -72,13 +79,14 @@ docker run -it --rm
 runit = """
 docker run -it --rm
             --env-file .env
-            --env="DISPLAY"
+            --env "DISPLAY"
+            {{"' '.join(['--env '+'='.join([k,v]) for k,v in env.items()])"|eval(env=docker_service.env)}}
             --volume="/etc/group:/etc/group:ro"
             --volume="/etc/passwd:/etc/passwd:ro"
             --volume="/etc/shadow:/etc/shadow:ro"
             --volume="/etc/sudoers.d:/etc/sudoers.d:ro"
             --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"
-            {{ "'--network '+n['name'] if n else ''"|eval(n=docker.infra.networks[0]|default({})) }}
+            {{ "'--network '+n['name'] if n else ''"|eval(n=docker_infra.networks[0]|default({})) }}
             {{"' '.join([ '-v '+':'.join([v,v]) for v in list(vs.values())+[project_folder] ])"
             |eval(vs=settings.PROJECT.dirs,project_folder=project_folder)}}
             -w {{project_folder}}
@@ -89,13 +97,14 @@ rootit = """
 docker run -it --rm
             --user root
             --env-file .env
-            {{ "'--network '+n['name'] if n else ''"|eval(n=docker.infra.networks[0]|default({})) }}
+            {{ "'--network '+n['name'] if n else ''"|eval(n=docker_infra.networks[0]|default({})) }}
             {{"' '.join([ '-v '+':'.join([v,v]) for v in list(vs.values())+[project_folder] ])"
             |eval(vs=settings.PROJECT.dirs,project_folder=project_folder)}}
             -w {{project_folder}}
             {{image_fullname}}
             bash
 """
+
 
 [build-system]
 requires = ["poetry>=1"]

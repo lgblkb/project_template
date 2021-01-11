@@ -2,7 +2,8 @@ all:
   hosts:
     localhost:
       ansible_connection: local
-      ansible_python_interpreter: "/usr/bin/python3"
+      #      ansible_python_interpreter: "/usr/bin/python3"
+      ansible_python_interpreter: "/home/lgblkb/.cache/pypoetry/virtualenvs/proj-1-krtIMr3S-py3.8/bin/python"
       project_folder: "{{playbook_dir|dirname}}"
   vars:
     env_name: "development"
