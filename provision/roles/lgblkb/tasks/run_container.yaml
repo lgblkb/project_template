@@ -9,7 +9,7 @@
       register: out
     - set_fact:
         cont_info: "{{out.container_info}}"
-  when: container_vars.celery_worker|default(False)
+  when: container_vars.celery_worker is defined
 
 #- debug: msg="{{cont_info}}"
 #- fail:
@@ -23,7 +23,7 @@
       register: out
     - set_fact:
         cont_info: "{{out.container_info}}"
-  when: container_vars.watchdog|default(False)
+  when: container_vars.watchdog is defined
 
 
 

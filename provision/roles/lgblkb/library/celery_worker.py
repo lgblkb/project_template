@@ -2,7 +2,6 @@
 
 # Copyright: (c) 2018, Terry Jones <terry.jones@example.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-from pathlib import Path
 from pprint import pformat
 
 ANSIBLE_METADATA = {
@@ -71,7 +70,6 @@ message:
 from ansible.module_utils.basic import AnsibleModule
 from box import Box
 import logging
-import os
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('lgblkb')
@@ -104,8 +102,9 @@ def evaluate(params: Box):
         worker_options.prefetch_multiplier = worker_options.get('prefetch_multiplier', 1)
 
         if params.container_vars.get('name_prefix', False):
+            default_base_name = container_info.name.replace(f"{params.container_vars.name_prefix}_", '')
             worker_options.queues = ['.'.join([params.container_vars.name_prefix, queue])
-                                     for queue in worker_options.get('queues', [])]
+                                     for queue in worker_options.get('queues', [default_base_name])]
         if not worker_options.queues:
             worker_options.queues = [container_info.name]
         worker_options.queues = ",".join(worker_options.queues)
