@@ -4,8 +4,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from pprint import pformat
 
-from jinja2 import Template, StrictUndefined
-
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status': ['preview'],
@@ -70,23 +68,8 @@ message:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-import itertools as it
-import string
-import ast
-import operator
-import more_itertools as mit
-from asteval import Interpreter
-from pathlib import PurePath
 from box import Box
-import textwrap
-import copy
-import ast
-import functools
-import boltons.iterutils
-import glob
-import os
 import logging
-import jinja2
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('lgblkb')
@@ -140,7 +123,7 @@ def evaluate(params: Box):
         if isinstance(target_info, Box):
             info_keys = set(target_info.keys())
             present_builtin_keys = builtin_keys - (builtin_keys - info_keys)
-            target_info.post = target_info - {bk: 1 for bk in present_builtin_keys} + target_info.post
+            target_info.post = target_info - Box({bk: 1 for bk in present_builtin_keys}) + target_info.post
 
             target_out.targets = set_targets(target_name, target_info)
             target_out.pre = sw.pre + target_info.pre

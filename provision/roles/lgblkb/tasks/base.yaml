@@ -1,11 +1,13 @@
-- include_tasks: pull_project.yaml
-  when: ansible_connection!='local'
+- name: Pull project from git
+  include_tasks: pull_project.yaml
+  when: pull_project and ansible_connection!='local'
+
 - include_tasks: extract_project_info.yaml
 
 - include_tasks: envise.yaml
   vars: { input_file: settings/switch.yaml, set_to: settings_switch }
 
-- name: Load steps
+- name: Load ksteps
   include_tasks: read_steps.yaml
   with_dict: "{{settings_switch}}"
   loop_control: { loop_var: step }
