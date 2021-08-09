@@ -46,10 +46,10 @@ RUN groupadd -g ${GROUP_ID} ${USERNAME} &&\
      ${USER_ID}:${GROUP_ID} \
         /home/${USERNAME}
 
-COPY requirements_base.txt .
-RUN pip3 install --no-cache-dir -r requirements_base.txt
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+COPY provision/roles/lgblkb/files/poetry_cache/* ./
+RUN poetry install
+COPY pyproject.toml poetry.lock ./
+RUN poetry install
 
 USER ${USERNAME}
 
