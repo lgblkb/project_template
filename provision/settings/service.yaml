@@ -1,61 +1,55 @@
 default:
+  PROJECT:
+    name: "{{project_name}}"
+
   CELERY:
-    base_name: "{{poetry_info.name}}"
+    base_name: "{{project_name}}"
     config:
-      accept_content: [ 'json','pickle' ]
+      accept_content: [ 'json' ]
       enable_utc: True
       timezone: "Asia/Almaty"
-      task_serializer: 'pickle'
-      event_serializer: 'json'
-      result_serializer: 'pickle'
-      task_publish_retry: True #hmmmmmmmmmmm
-      task_ignore_result: False #per_worker
-      task_track_started: False #per_worker
-      task_time_limit:
-      task_acks_late: False #per_worker
-      result_backend: "{{'db+postgresql://{username}:{password}@{host}/{database}'|fmt(infra.DB)}}"
-      result_extended: True
-      imports:
-        - app.tasks.acquire_product
-        - app.tasks.perform_query
-        - app.tasks.process_fields
-        - app.tasks.process_safe_product
-        - app.tasks.unzip_product
-        - app.tasks.get_evenly_spaced_points
-        - app.tasks.distributor
-      #      imports: >-
-      #        {{"['app.tasks.'+Path(x).with_suffix('').name for x in
-      #        glob.glob(pf+'/app/tasks/**/*.py', recursive=True) if not Path(x).name.startswith('_')]"|
-      #        eval(pf=project_folder)}}
+      #      task_serializer: 'pickle'
+      #      event_serializer: 'json'
+      #      result_serializer: 'pickle'
+      task_acks_late: true
+      task_create_missing_queues: true
+      worker_cancel_long_running_tasks_on_connection_loss: true
+      imports: |-
+        {{
+        "
+        out=list()
+        prefix_parts=['app','tasks']
+        tasks_folder = Path(tasks_folder)
+        for part in prefix_parts:
+            tasks_folder=tasks_folder.joinpath(part)
+        for filepath in glob.glob(str(tasks_folder.joinpath('*.py')), recursive=True):
+            filepath = Path(filepath)
+            if filepath.name == '__init__.py': continue
+            filename = filepath.with_suffix('').name
+
+            import_path=''
+            for part in prefix_parts+[filename]:
+                import_path+=part+'.'
+            out.append(import_path.rstrip('.'))
+        "
+        |eval(tasks_folder=project_folder)
+        }}
+
       task_queue_max_priority: 10
       task_default_priority: 5
       task_inherit_parent_priority: True
-      task_default_queue: "{{poetry_info.name}}"
       broker_url: "{{'pyamqp://{user}:{password}@{hostname}'|fmt(infra.RABBITMQ)}}"
-      worker_concurrency: 1
-      worker_prefetch_multiplier: 1
-      worker_max_tasks_per_child: 100
-      worker_timer_precision: 0.5
-      worker_send_task_events: True
+      result_backend: "{{'redis://:{password}@{host}:6379/0'|fmt(infra.REDIS)}}"
+      result_expires: 43200
+      worker_prefetch_multiplier: 3
+      worker_max_tasks_per_child: 3
+      result_backend_transport_options: { visibility_timeout: 86400 }
 
 development:
   PROJECT:
     dirs:
-      cache_folder: "/home/lgblkb/caches/{{poetry_info.name}}"
-      data_folder: "/home/lgblkb/data/{{poetry_info.name}}"
-
-staging:
-  PROJECT:
-    dirs:
-      cache_folder: "/mnt/md0/caches/{{poetry_info.name}}"
-      data_folder: "/mnt/md0/data/{{poetry_info.name}}"
-
-production:
-  PROJECT:
-    dirs:
-      cache_folder: "/nfs/storage/caches/{{poetry_info.name}}"
-      data_folder: "/nfs/storage/data/{{poetry_info.name}}"
-
-
-
+      cache_folder: "/storage/caches"
+      data_folder: "/storage/data"
+      rasters_folder: "/storage/rasters"
+      media_folder: "/storage/media"
 

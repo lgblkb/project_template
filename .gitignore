@@ -145,7 +145,7 @@ cython_debug/
 # Ignore dynaconf secret files
 .secrets.*
 .secret
-provision/.toml_info.yaml
-/provision/roles/lgblkb/files/.toml_info.yaml
+provision_old/.toml_info.yaml
+/provision_old/roles/lgblkb/files/.toml_info.yaml
 /settings.yaml
-provision/watched/
+provision_old/watched/

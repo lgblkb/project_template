@@ -1,5 +1,5 @@
 - name: Read switch
-  include_role: { name: lgblkb, tasks_from: envise }
+  include_role: { name: "{{roles_location}}", tasks_from: envise }
   vars: { input_file: "{{switch_info.value}}", set_to: "{{switch_info.key}}" }
 
 - prepare_switch: { switch: "{{lookup('vars',switch_info.key)}}" }
@@ -7,6 +7,6 @@
 #- debug: msg="{{out.target_groups}}"
 #- fail:
 - name: Deploy targets
-  include_role: { name: lgblkb, tasks_from: deploy_targets.yaml }
+  include_role: { name: "{{roles_location}}", tasks_from: deploy_targets.yaml }
   loop_control: { loop_var: target_infos }
   loop: "{{out.target_groups}}"

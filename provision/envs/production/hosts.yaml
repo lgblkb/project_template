@@ -1,14 +1,16 @@
 all:
   hosts:
-    egistic_db:
-      ansible_host: 94.247.135.91
-      ansible_user: egistic_db
-      ansible_python_interpreter: "/usr/bin/python3.8"
-      project_folder: [ Not defined ]
-      key_file: "~/.ssh/lgblkb_rsa"
+    aws_server:
+      ansible_host: 35.154.215.124
+      ansible_user: ubuntu
+      #      ansible_python_interpreter: "/usr/bin/python3"
+      ansible_python_interpreter: "/home/ubuntu/.cache/pypoetry/virtualenvs/imagiflow-mfGYrIIF-py3.8/bin/python"
+      project_folder: "/home/ubuntu/egistic/imagiflow"
+      key_file: "~/.ssh/aws_server_rsa"
+      infra_volumes_dir: "/mnt/efs/fs1/{{project_name}}_infra_volumes"
   vars:
     env_name: "production"
-    build_target: 'builder'
+    build_target: 'production'
 
 
 

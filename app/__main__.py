@@ -2,7 +2,7 @@ import time
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('qwe')
+logger = logging.getLogger('app')
 
 
 def main():

@@ -101,7 +101,7 @@ def evaluate(params: Box):
         worker_options.events = worker_options.get('events', True)
         worker_options.prefetch_multiplier = worker_options.get('prefetch_multiplier', 1)
 
-        if params.container_vars.get('name_prefix', False):
+        if params.container_vars.get('name_prefix', False) and 'queues' not in worker_options:
             default_base_name = container_info.name.replace(f"{params.container_vars.name_prefix}_", '')
             worker_options.queues = ['.'.join([params.container_vars.name_prefix, queue])
                                      for queue in worker_options.get('queues', [default_base_name])]
@@ -116,10 +116,14 @@ def evaluate(params: Box):
         command_parts.append('--hostname={hostname}')
         command_parts.append('--queues={queues}')
         command_parts.append('--prefetch-multiplier={prefetch_multiplier}')
+        if worker_options.pool:
+            command_parts.append('--pool={pool}')
         if worker_options.events:
             command_parts.append('--events')
         if worker_options.autoscale:
             command_parts.append('--autoscale={autoscale}')
+        command_parts.append('--without-gossip --without-mingle')
+        # command_parts.append('--without-heartbeat')
 
         container_info.command = " ".join(command_parts).format(**worker_options)
 

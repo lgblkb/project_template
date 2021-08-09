@@ -5,6 +5,7 @@
   vars:
     input_file: "{{base_dir|default(playbook_dir)}}/{{target.value}}"
     set_to: "{{target.key}}"
+    file_vars: "{{config_info.vars}}"
   when: target.value|length>0
 
 - name: "Set config facts"

@@ -187,10 +187,10 @@ def run_module():
 
 
 def main():
+    # path = '/home/lgblkb/PycharmProjects/pyminetest/Pipfile'
     run_module()
-    # tm = TomlMan(r'/home/lgblkb/PycharmProjects/proj_1/pyproject.toml')
+    # tm = TomlMan(path)
     # tm.update_toml_data(dict(qwe=1))
-    # tm.copy_as(dict(data))
 
 
 if __name__ == '__main__':

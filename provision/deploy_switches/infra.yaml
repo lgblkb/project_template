@@ -1,5 +1,67 @@
 default:
   pre: "{{docker_infra}}"
   configs:
-    portainer: containers/infra/portainer.yaml
-#    base: containers/infra/base.yaml
+    #    prefect:
+    #      targets:
+    #        - postgres: containers/infra/prefect/postgres.yaml
+    #        - apollo: containers/infra/prefect/apollo.yaml
+    #        - graphql: containers/infra/prefect/graphql.yaml
+    #        - hasura: containers/infra/prefect/hasura.yaml
+    #        - towel: containers/infra/prefect/towel.yaml
+    #        - ui: containers/infra/prefect/ui.yaml
+    db: ../containers/infra/db.yaml
+    #    imagiflow_flower: ../containers/infra/airflow/flower.yaml
+    #    imagiflow_init: ../containers/infra/airflow/init.yaml
+    #    imagiflow_redis: ../containers/infra/airflow/redis.yaml
+    #    imagiflow_webserver: containers/infra/airflow/webserver.yaml
+    #    memcached: ../containers/infra/memcached.yaml
+    rabbitmq: ../containers/infra/rabbitmq.yaml
+    redis: ../containers/infra/redis.yaml
+    #    flower: ../containers/infra/flower.yaml
+#    dagster_db:
+#      target: ../containers/infra/db.yaml
+#      name: "{{infra.DAGSTER_DB.host}}"
+#      env:
+#        POSTGRES_DBNAME: "{{infra.DAGSTER_DB.database}}"
+#      ports: [ "5438:5432" ]
+#      volumes:
+#        - "{{infra_volumes_dir}}/dagster_db:/var/lib/postgresql"
+
+
+#    backend_uz:
+#      target: containers/infra/backend.yaml
+#      name: "{{infra.DB_BACKEND.UZ.host}}"
+#      env: { POSTGRES_DBNAME: "{{infra.DB_BACKEND.UZ.database}}" }
+#      ports: [ "5443:5432" ]
+#      vars: { backend_target: uz }
+
+development: &development
+  configs:
+    portainer: ../containers/infra/portainer.yaml
+    #    pgweb: containers/infra/pgweb.yaml
+    pgadmin: ../containers/infra/pgadmin.yaml
+
+
+    backend_kz:
+      target: ../containers/infra/backend.yaml
+      name: "{{infra.DB_BACKEND.KZ.host}}"
+      env:
+        POSTGRES_DBNAME: "{{infra.DB_BACKEND.KZ.database}}"
+      ports: [ "5440:5432" ]
+      vars: { backend_target: kz }
+
+
+#    backend_nd:
+#      target: containers/infra/backend.yaml
+#      name: "{{infra.DB_BACKEND.ND.host}}"
+#      env: { POSTGRES_DBNAME: "{{infra.DB_BACKEND.ND.database}}" }
+#      ports: [ "5442:5432" ]
+#      vars: { backend_target: nd }
+
+staging: *development
+
+#production:
+#  configs:
+#    dagster_db:
+#      volumes:
+#        - "/infrastructure_volumes/imagiflow/dagster_db:/var/lib/postgresql"

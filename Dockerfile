@@ -1,5 +1,5 @@
-#FROM phusion/baseimage:focal-1.0.0alpha1-amd64 as base
-FROM nvidia/cuda:11.0-runtime-ubuntu20.04 as base
+#FROM phusion/baseimage:focal-1.0.0-amd64 as base
+FROM nvidia/cuda:11.2.0-runtime-ubuntu20.04 as base
 #FROM nvcr.io/nvidia/cuda:11.1-devel-ubuntu20.04 as base
 MAINTAINER Dias Bakhtiyarov, dbakhtiyarov@nu.edu.kz
 
@@ -52,8 +52,4 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 USER ${USERNAME}
-
-FROM base as production
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
 

@@ -1,3 +1,8 @@
+- set_fact:
+    "{{file_var.key}}": "{{file_var.value}}"
+  with_dict: "{{file_vars|default({})}}"
+  loop_control: { loop_var: file_var }
+
 - name: "Reading {{set_to}}"
   include_vars:
     file: "{{input_file}}"

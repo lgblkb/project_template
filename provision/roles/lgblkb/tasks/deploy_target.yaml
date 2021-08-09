@@ -9,7 +9,7 @@
     container_info: |
       {{"
       info=Box(info,default_box=True)
-      info.name=info.name or info.image.split(':')[0]
+      info.name=info.name or target_name
       if name_prefix:
           info.name='_'.join([name_prefix,info.name])
       info.hostname=info.hostname or info.name
@@ -18,6 +18,6 @@
         comparisons={'*': 'strict'},
         networks_cli_compatible=False) + info
       out=out.to_dict()
-      "|eval(info=info.value,
+      "|eval(info=info.value,target_name=target_name,
       name_prefix=container_vars.name_prefix|default(''))
       }}

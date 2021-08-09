@@ -2,11 +2,27 @@ default:
   image: "{{image_fullname}}"
   env:
     ENV_FOR_DYNACONF: "{{env_name}}"
-    MPLCONFIGDIR: "{{service.PROJECT.dirs.cache_folder}}"
-    GDAL_CACHEMAX: "2048"
-    FLASK_APP: "app/server.py"
-  volumes: >-
-    {{"[folder+':'+folder for folder in set(list(dirs_info.values())+[project_folder])]"|
-    eval(dirs_info=service.PROJECT.dirs,project_folder=project_folder)}}
+    C_FORCE_ROOT: "1"
+    MPLCONFIGDIR: "{{settings.PROJECT.dirs.cache_folder}}"
+    GDAL_CACHEMAX: "256"
+    NUMEXPR_MAX_THREADS: "8"
+
+  volumes: |
+    {{
+    "
+    volumes=list()
+
+    def add(folder):
+        volumes.append(folder+':'+folder)
+
+    add(project_folder)
+    proj_settings=Box(proj_settings,default_box=True)
+    for dir in proj_settings.dirs.values():
+        add(dir)
+    for target,target_info in proj_settings.targets.items():
+        for dir in target_info.dirs.values():
+            add(dir)
+    out=volumes
+    "|eval(proj_settings=settings.PROJECT,project_folder=project_folder)}}
   working_dir: "{{project_folder}}"
   state: started

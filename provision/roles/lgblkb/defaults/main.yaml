@@ -1,3 +1,4 @@
+pipelining: yes
 pull_project: yes
 build_docker_image: yes
 launch_container: yes

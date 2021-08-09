@@ -12,6 +12,7 @@
   vars:
     container_infos: "{{lookup('vars',target.key)}}"
     container_vars: "{{target_infos.vars}}"
+    target_name: "{{target.key}}"
 
 
 

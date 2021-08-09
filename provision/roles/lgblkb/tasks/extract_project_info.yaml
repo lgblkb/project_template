@@ -1,30 +1,25 @@
 - name: Extract project info
   block:
-    - manage_toml:
-        path: "{{master_project_folder}}/pyproject.toml"
-        copy_as:
-          path: "{{master_project_folder}}/provision/roles/lgblkb/files/.toml_info.yaml"
-          method: to_yaml
-      register: toml_meta
-      delegate_to: localhost
-
     - set_fact:
-        poetry_info: "{{toml_meta.out.tool.poetry}}"
-        project_info: "{{toml_meta.out.tool.project}}"
+        project_name: "{{master_project_folder|basename}}"
     - set_fact:
-        image_name: "{{poetry_info.name}}-{{env_name}}"
-        image_tag: "{{poetry_info.version}}"
+        image_name: "{{project_name}}-{{env_name}}"
+        image_tag: "latest"
     - set_fact:
-#        image_fullname: "{{poetry_info.name}}-{{env_name}}:{{poetry_info.version}}"
         image_fullname: "{{image_name}}:{{image_tag}}"
-#    - include_vars: "{{master_project_folder}}/provision/envs/{{env_name}}/.vars.yaml"
-
+- name: Set IMAGE_FULLNAME in .env
+  lineinfile:
+    dest: "{{project_folder}}/.env"
+    line: >-
+      IMAGE_FULLNAME="{{image_fullname}}"
+    state: present
+    insertafter: EOF
 - name: Detect project environments
-  block:
-    - find:
-        paths: [ '{{project_folder}}/provision/envs' ]
-        file_type: directory
-      register: find_meta
-    - set_fact:
-        project_envs: >-
-          {{"[Path(x['path']).name for x in files]"|eval(files=find_meta.files)}}
+  find:
+    paths: [ '{{project_folder}}/provision/envs' ]
+    file_type: directory
+  register: find_meta
+- name: Set project_envs
+  set_fact:
+    project_envs: >-
+      {{"[Path(x['path']).name for x in files]"|eval(files=find_meta.files)}}

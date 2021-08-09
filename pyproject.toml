@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "proj_1"
+name = "project_template"
 version = "0.1.0"
 description = ""
 authors = ["lgblkb <dbakhtiyarov@nu.edu.kz>"]
@@ -14,96 +14,19 @@ click = "^7.1.2"
 more-itertools = "^8.6.0"
 python-box = "^5.2.0"
 pyyaml = "^5.3.1"
-"ruamel.yaml" = "^0.16.12"
 taskipy = "^1.6.0"
 tomlkit = "^0.7.0"
 jinja2 = "^2.11.2"
 watchdog = "^1.0.2"
 argh = "^0.26.2"
+docker = "^5.0.0"
+ansible = "^4.3.0"
+fire = "^0.4.0"
+omegaconf = "^2.1.0"
+python-dotenv = "^0.19.0"
 
 
 [tool.poetry.dev-dependencies]
-
-
-[tool.taskipy.tasks]
-commit = "task ansible encrypt all; git commit -am"
-post_commit = "task ansible decrypt all;"
-export = "poetry update; poetry export --without-hashes -f requirements.txt > requirements.txt"
-export_base = "task export; cp requirements.txt requirements_base.txt"
-cache_clear = "poetry cache clear"
-
-ansible = "python provision/roles/lgblkb/files/ansible_helper.py"
-build = "task base; task docker_build"
-init = "task ansible play init --no-vault"
-pre_init = "touch .env && pip install -r provision/roles/lgblkb/files/.requirements.txt"
-base = "task ansible play base"
-infra = "task ansible play infra"
-service = "task ansible play service"
-pre_rundit = "xhost +"
-
-docker_build = "docker image build -t proj_1-development:0.1.0 --target builder --build-arg USER_ID=1000 --build-arg GROUP_ID=1000 --build-arg USERNAME=lgblkb --build-arg PROJECT_DIR=/home/lgblkb/PycharmProjects/project_template /home/lgblkb/PycharmProjects/project_template"
-rootit = "docker run -it --rm --user root --env-file .env --network proj_1_network -v /home/lgblkb/caches/proj_1:/home/lgblkb/caches/proj_1 -v /home/lgblkb/data/proj_1:/home/lgblkb/data/proj_1 -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 bash"
-run = "docker run -it --rm --env-file .env --network proj_1_network -v /home/lgblkb/caches/proj_1:/home/lgblkb/caches/proj_1 -v /home/lgblkb/data/proj_1:/home/lgblkb/data/proj_1 -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 python -m"
-runit = "docker run -it --rm --env-file .env --env \"DISPLAY\" --env ENV_FOR_DYNACONF=development --env MPLCONFIGDIR=/home/lgblkb/caches/proj_1 --env GDAL_CACHEMAX=2048 --env FLASK_APP=app/server.py --volume=\"/etc/group:/etc/group:ro\" --volume=\"/etc/passwd:/etc/passwd:ro\" --volume=\"/etc/shadow:/etc/shadow:ro\" --volume=\"/etc/sudoers.d:/etc/sudoers.d:ro\" --volume=\"/tmp/.X11-unix:/tmp/.X11-unix:rw\" --network proj_1_network -v /home/lgblkb/caches/proj_1:/home/lgblkb/caches/proj_1 -v /home/lgblkb/data/proj_1:/home/lgblkb/data/proj_1 -v /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template -w /home/lgblkb/PycharmProjects/project_template proj_1-development:0.1.0 bash"
-
-[tool.project]
-encrypted = [
-    'provision/settings/**/*.yaml',
-    'provision/containers/**/*.yaml',
-    'provision/deploy_switches/**/*.yaml',
-    'rclone_configs/*'
-]
-
-[tool.project.tasks]
-docker_build = """
-docker image build -t {{image_fullname}}
-                  --target {{build_target}}
-                  --build-arg USER_ID={{ansible_user_uid}}
-                  --build-arg GROUP_ID={{ansible_user_gid}}
-                  --build-arg USERNAME={{ansible_user_id}}
-                  --build-arg PROJECT_DIR={{project_folder}}
-                  {{project_folder}}
-"""
-
-run = """
-docker run -it
-            --env-file .env
-            --volume="/etc/group:/etc/group:ro"
-            --volume="/etc/passwd:/etc/passwd:ro"
-            --volume="/etc/shadow:/etc/shadow:ro"
-            --volume="/etc/sudoers.d:/etc/sudoers.d:ro"
-            {{"' '.join(['--env '+'='.join([k,v]) for k,v in env.items()])"|eval(env=docker_service.env)}}
-            {{ "'--network '+n['name'] if n else ''"|eval(n=docker_infra.networks[0]|default({})) }}
-            {{"' '.join([ '-v '+':'.join([v,v]) for v in list(vs.values())+[project_folder] ])"
-            |eval(vs=settings.PROJECT.dirs,project_folder=project_folder)}}
-            -w {{project_folder}}
-"""
-
-rundit="""
-task run --rm
-    --env="DISPLAY"
-    --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"
-    {{image_fullname}}
-    bash
-"""
-
-runit = """
-task run --rm
-            {{image_fullname}}
-            bash
-"""
-rootit = """
-docker run -it --rm
-            --user root
-            --env-file .env
-            {{ "'--network '+n['name'] if n else ''"|eval(n=docker_infra.networks[0]|default({})) }}
-            {{"' '.join([ '-v '+':'.join([v,v]) for v in list(vs.values())+[project_folder] ])"
-            |eval(vs=settings.PROJECT.dirs,project_folder=project_folder)}}
-            -w {{project_folder}}
-            {{image_fullname}}
-            bash
-"""
-
 
 [build-system]
 requires = ["poetry>=1"]
