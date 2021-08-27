@@ -1,14 +1,12 @@
 - hosts: all
   vars:
     roles_location: ../roles/lgblkb
-
     build_docker_image: yes
     show_container_details: no
     launch_container: yes
     pull_project: yes
   tasks:
     - include_role: { name: "{{roles_location}}", tasks_from: base }
-
     - include_role: { name: "{{roles_location}}", tasks_from: deploy }
       loop_control: { loop_var: switch_info }
       with_dict:

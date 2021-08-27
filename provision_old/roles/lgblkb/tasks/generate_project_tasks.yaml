@@ -1,0 +1,43 @@
+- name: Generate project tasks
+  block:
+    #    - name: Read toml file
+    #      include_vars:
+    #        file: "{{toml_meta.copy_as.path}}"
+    #        name: toml_data
+    - name: Read commands
+      include_vars:
+        file: "{{master_project_folder}}/provision/commands/templated.yaml"
+        name: templated
+
+    - eval:
+        expression: |
+          for k,v in project_tasks.items():
+            project_tasks[k]=" ".join(map(str.strip, v.splitlines())).strip()
+        data:
+          #          project_tasks: "{{toml_data.tool.project.tasks}}"
+          project_tasks: "{{templated}}"
+        out: project_tasks
+      register: eval_meta
+    - set_fact:
+        project_tasks: "{{eval_meta.project_tasks}}"
+    - name: Create project tasks
+      copy:
+        #        content: '{{ project_tasks | to_nice_yaml(indent=2) }}'
+        content: "{{item.value.split('--')|join(' \\\n\t--')}}"
+        dest: "{{project_folder}}/provision/commands/{{item.key}}.sh"
+        mode: a+x
+      with_dict: "{{project_tasks}}"
+      loop_control:
+        label: "{{ item.key }}"
+
+#    - name: Set Image fullname
+#      lineinfile:
+#        dest: "~/.bashrc"
+#        line: "export {{(project_name+'_image_fullname')|upper}}={{image_fullname}}"
+#    - name: Source the bashrc file
+#      shell: . ~/.bashrc
+#      manage_toml:
+#        #        path: "{{project_folder}}/pyproject.toml"
+#        path: "{{project_folder}}/provision/commands/rendered.yaml"
+#        data:
+#          scripts: "{{project_tasks}}"

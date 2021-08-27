@@ -1,0 +1,55 @@
+default:
+  PROJECT:
+    name: "{{project_name}}"
+
+  CELERY:
+    base_name: "{{project_name}}"
+    config:
+      accept_content: [ 'json' ]
+      enable_utc: True
+      timezone: "Asia/Almaty"
+      #      task_serializer: 'pickle'
+      #      event_serializer: 'json'
+      #      result_serializer: 'pickle'
+      task_acks_late: true
+      task_create_missing_queues: true
+      worker_cancel_long_running_tasks_on_connection_loss: true
+      imports: |-
+        {{
+        "
+        out=list()
+        prefix_parts=['app','tasks']
+        tasks_folder = Path(tasks_folder)
+        for part in prefix_parts:
+            tasks_folder=tasks_folder.joinpath(part)
+        for filepath in glob.glob(str(tasks_folder.joinpath('*.py')), recursive=True):
+            filepath = Path(filepath)
+            if filepath.name == '__init__.py': continue
+            filename = filepath.with_suffix('').name
+
+            import_path=''
+            for part in prefix_parts+[filename]:
+                import_path+=part+'.'
+            out.append(import_path.rstrip('.'))
+        "
+        |eval(tasks_folder=project_folder)
+        }}
+
+      task_queue_max_priority: 10
+      task_default_priority: 5
+      task_inherit_parent_priority: True
+      broker_url: "{{'pyamqp://{user}:{password}@{hostname}'|fmt(infra.RABBITMQ)}}"
+      result_backend: "{{'redis://:{password}@{host}:6379/0'|fmt(infra.REDIS)}}"
+      result_expires: 43200
+      worker_prefetch_multiplier: 3
+      worker_max_tasks_per_child: 3
+      result_backend_transport_options: { visibility_timeout: 86400 }
+
+development:
+  PROJECT:
+    dirs:
+      cache_folder: "/storage/caches"
+      data_folder: "/storage/data"
+      rasters_folder: "/storage/rasters"
+      media_folder: "/storage/media"
+

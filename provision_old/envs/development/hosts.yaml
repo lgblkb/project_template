@@ -1,0 +1,14 @@
+all:
+  hosts:
+    localhost:
+      ansible_connection: local
+      ansible_python_interpreter: "/home/lgblkb/.cache/pypoetry/virtualenvs/imagiflow-5AatFMyV-py3.8/bin/python"
+      project_folder: "{{playbook_dir|dirname|dirname}}"
+  vars:
+    env_name: "development"
+    build_target: 'builder'
+    infra_volumes_dir: "/storage/infra_volumes"
+
+
+
+

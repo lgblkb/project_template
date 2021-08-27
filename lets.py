@@ -30,6 +30,8 @@ def compose(filename, target, vault=False, **options):
         if type(v) is bool and v:
             if len(k) == 1:
                 parts.append(f'-{k}')
+            elif 'vv' in k:
+                parts.append(f'-{k}')
             else:
                 parts.append(f'--{k}')
         else:
@@ -37,7 +39,7 @@ def compose(filename, target, vault=False, **options):
     if vault:
         parts += vault_parts
     cmd = """ """.join(map(str, parts))
-    # logger.debug("cmd: %s", cmd)
+    logger.debug("cmd: %s", cmd)
     return cmd
 
 
@@ -59,14 +61,15 @@ def add_method(cls, name=''):
 
 
 class Play(object):
-    def __init__(self, filename=default_filename, target=default_target):
+    def __init__(self, filename=default_filename, target=default_target, **kwargs):
         self._target = target
         self._filename = filename
         self._tasks = list()
+        self.kwargs = kwargs
 
     def play(self):
         for task in self._tasks:
-            os.system(task(target=self._target))
+            os.system(task(target=self._target, **self.kwargs))
 
     def check(self):
         for idx, task in enumerate(self._tasks):

@@ -1,0 +1,14 @@
+default:
+  redis:
+    image: "bitnami/redis:6.0.9"
+    name: "{{infra.REDIS.host}}"
+    command: "/opt/bitnami/scripts/redis/run.sh --maxmemory 1024mb"
+    env:
+      REDIS_PASSWORD: "{{infra.REDIS.password}}"
+    sysctls:
+      net.core.somaxconn: "1024"
+
+development:
+  redis:
+    ports:
+      - "6378:6379"

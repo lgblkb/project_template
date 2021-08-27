@@ -1,0 +1,10 @@
+default:
+  rabbitmq:
+    image: "rabbitmq:3.8.16-management"
+    name: "{{infra.RABBITMQ.hostname}}"
+    env:
+      RABBITMQ_DEFAULT_USER: "{{infra.RABBITMQ.user}}"
+      RABBITMQ_DEFAULT_PASS: "{{infra.RABBITMQ.password}}"
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit consumer_timeout 2592000000"
+    ports:
+      - "15673:15672"

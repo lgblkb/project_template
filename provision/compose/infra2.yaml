@@ -1,0 +1,23 @@
+#pre_:
+#  services:
+#    '*':
+#      pre_: "${docker_infra}"
+
+default:
+  services:
+    '*':
+      pre_: "${docker_infra}"
+    db:
+      pre_:
+        zxc: 10256912748
+        asd: 235
+      asd: 123
+      qwe: 234
+    rabbitmq:
+      sdf: 345
+      fgh: 1024813
+
+production:
+  services:
+    redis:
+      qwe: aogbosfdosa

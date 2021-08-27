@@ -1,0 +1,25 @@
+- name: Extract project info
+  block:
+    - set_fact:
+        project_name: "{{master_project_folder|basename}}"
+    - set_fact:
+        image_name: "{{project_name}}-{{env_name}}"
+        image_tag: "latest"
+    - set_fact:
+        image_fullname: "{{image_name}}:{{image_tag}}"
+- name: Set IMAGE_FULLNAME in .env
+  lineinfile:
+    dest: "{{project_folder}}/.env"
+    line: >-
+      IMAGE_FULLNAME="{{image_fullname}}"
+    state: present
+    insertafter: EOF
+- name: Detect project environments
+  find:
+    paths: [ '{{project_folder}}/provision/envs' ]
+    file_type: directory
+  register: find_meta
+- name: Set project_envs
+  set_fact:
+    project_envs: >-
+      {{"[Path(x['path']).name for x in files]"|eval(files=find_meta.files)}}
