@@ -1,6 +1,2 @@
 default:
-  state: started
-development:
-  restart_policy: unless-stopped
-production:
-  state: present
+  restart: always

@@ -15,7 +15,7 @@ logger = logging.getLogger('lgblkb')
 
 project_folder = Path(__file__).parent
 provision_folder = project_folder.joinpath('provision')
-scripts_folder = provision_folder.joinpath('scripts')
+scripts_folder = provision_folder  # .joinpath('scripts')
 commands_folder = provision_folder.joinpath('commands')
 secret_filepath = provision_folder.joinpath('roles/lgblkb/files/.secret')
 

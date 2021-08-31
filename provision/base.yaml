@@ -1,9 +1,8 @@
 - hosts: all
   vars:
-    roles_location: ../roles/lgblkb
     pull_project: yes
   tasks:
-    - include_role: { name: "{{roles_location}}", tasks_from: new_base }
+    - include_role: { name: lgblkb, tasks_from: new_base }
 #    - name: 'Create project networks'
 #      docker_network: "{{item}}"
 #      loop: "{{docker_infra.networks|default([])}}"

@@ -1,17 +1,17 @@
 - name: Testing compose config
   lgblkb_task:
     env_name: "{{env_name}}"
-    settings_switch: '../settings/switch.yaml'
-    deploy_settings: '../compose/infra2.yaml'
+    settings_switch: 'switch.yaml'
+    deploy_settings: 'compose/infra.yaml'
     vars:
       build_target: "{{build_target}}"
       infra_volumes_dir: "{{infra_volumes_dir}}"
       ansible_user_uid: "{{ansible_user_uid}}"
       ansible_user_gid: "{{ansible_user_gid}}"
       ansible_user_id: "{{ansible_user_id}}"
-
-
   register: response
 #- debug: msg="{{response.service.CELERY.config.imports|default('Nope')}}"
-- debug: msg="{{response}}"
-- debug: msg="{{qwe|default('Nope')}}"
+#- debug: msg="{{response}}"
+#- debug: msg="{{response.compose.infra}}"
+#- debug: msg="{{qwe|default('Nope')}}"
+#- docker_compose: "{{response.compose.infra}}"

@@ -13,8 +13,8 @@ default:
       task_queue_max_priority: 10
       task_default_priority: 5
       task_inherit_parent_priority: True
-      broker_url: "${fmt:'pyamqp://{user}:{password}@{hostname}',infra.RABBITMQ}"
-      result_backend: "${fmt:'redis://:{password}@{host}:6379/0',infra.REDIS}"
+#      broker_url: "${fmt:'pyamqp://{user}:{password}@{hostname}',infra.RABBITMQ}"
+#      result_backend: "${fmt:'redis://:{password}@{host}:6379/0',infra.REDIS}"
       result_expires: 43200
       worker_prefetch_multiplier: 3
       worker_max_tasks_per_child: 3

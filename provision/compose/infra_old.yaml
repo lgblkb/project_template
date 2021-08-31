@@ -1,0 +1,19 @@
+default:
+  pre: "{{docker_infra}}"
+  configs:
+    db: ../containers/infra/db.yaml
+    rabbitmq: ../containers/infra/rabbitmq.yaml
+    redis: ../containers/infra/redis.yaml
+
+development:
+  configs:
+    portainer: ../containers/infra/portainer.yaml
+    pgadmin: ../containers/infra/pgadmin.yaml
+
+    backend_kz:
+      target: ../containers/infra/backend.yaml
+      name: "{{infra.DB_BACKEND.KZ.host}}"
+      env:
+        POSTGRES_DBNAME: "{{infra.DB_BACKEND.KZ.database}}"
+      ports: [ "5440:5432" ]
+      vars: { backend_target: kz }

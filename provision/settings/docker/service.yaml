@@ -14,4 +14,3 @@ default:
     [project_folder]
     "}
   working_dir: "${project_folder}"
-  state: started

@@ -17,10 +17,6 @@ default:
     --volume "/etc/shadow:/etc/shadow:ro"
     --volume "/etc/sudoers.d:/etc/sudoers.d:ro"
     --workdir ${project_folder}
-    ${eval:
-    "'--network '+n[0]['name'] if n else ''",
-    "n=docker_infra['networks']"
-    }
     ${eval:"' '.join(['--env '+k+'='+str(v) for k, v in docker_service['env'].items()])"}
     ${eval:"' '.join(['--volume '+':'.join([v]*2) for v in volumes])",
     "volumes=
@@ -28,3 +24,8 @@ default:
     [project_folder]"
     }
     "$@"
+
+#    ${eval:
+#        "'--network '+n[0]['name'] if n else ''",
+#        "n=docker_infra['networks']"
+#        }
