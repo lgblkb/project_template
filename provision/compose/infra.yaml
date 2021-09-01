@@ -1,0 +1,17 @@
+default:
+  pre_: "${docker.infra}"
+
+#    db: ${read:images/db.yaml}
+#    rabbitmq: ${read:images/rabbitmq.yaml}
+#    redis: ${read:images/redis.yaml}
+
+development:
+  project_name: global
+  definition:
+    services:
+      "*":
+        pre_:
+          networks: ${eval:"[k for k in docker.infra.definition.networks]"}
+
+      pgadmin: ${read:images/pgadmin.yaml}
+

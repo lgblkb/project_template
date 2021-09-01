@@ -1,0 +1,21 @@
+default:
+  image: "kartoza/postgis:13-3.1"
+  name: "${infra.DB.host}"
+  volumes:
+    - "${infra_volumes_dir}/imagiflow_db_kartoza:/var/lib/postgresql"
+  env:
+    ALLOW_IP_RANGE: "0.0.0.0/0"
+    DEFAULT_ENCODING: "UTF8"
+    POSTGRES_USER: "${infra.DB.username}"
+    POSTGRES_PASS: "${infra.DB.password}"
+    POSTGRES_DBNAME: "${infra.DB.database}"
+    POSTGRES_MULTIPLE_EXTENSIONS: "postgis,hstore,postgis_topology"
+    DEFAULT_COLLATION: "en_US.UTF-8"
+    DEFAULT_CTYPE: "en_US.UTF-8"
+    EXTRA_CONF: "max_connections = 500"
+  ports:
+    - "5439:5432"
+
+production:
+  volumes:
+    - /nfs/storage/volumes/imagiflow_db:/var/lib/postgresql

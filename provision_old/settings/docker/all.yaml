@@ -1,0 +1,10 @@
+default:
+  networks:
+    - name: "{{project_name}}_network"
+
+
+production:
+  networks:
+    - name: "{{project_name}}_network"
+    - name: 'postgis'
+

@@ -1,0 +1,33 @@
+docker_build: >-
+  docker image build -t {{image_fullname}}
+  --target {{build_target}}
+  --build-arg USER_ID={{ansible_user_uid}}
+  --build-arg GROUP_ID={{ansible_user_gid}}
+  --build-arg USERNAME={{ansible_user_id}}
+  --build-arg PROJECT_DIR={{project_folder}}
+  {{project_folder}}
+
+docker_run: >-
+  docker run
+  --env-file .env
+  --shm-size="8g"
+  --volume "/etc/group:/etc/group:ro"
+  --volume "/etc/passwd:/etc/passwd:ro"
+  --volume "/etc/shadow:/etc/shadow:ro"
+  --volume "/etc/sudoers.d:/etc/sudoers.d:ro"
+  {{"' '.join(['--env '+'='.join([k,v]) for k,v in env.items()])"|eval(env=docker_service.env)}}
+  {{ "'--network '+n['name'] if n else ''"|eval(n=docker_infra.networks[0]|default({})) }}
+  {{"' '.join([
+  '--volume '+':'.join([v,v]) for v in
+  list(vs.values())+
+  [project_folder]+
+  list(external_dirs.values())
+  ])"
+  |eval(
+  external_dirs=settings.PROJECT.external_dirs|default({}),
+  vs=settings.PROJECT.dirs,
+  project_folder=project_folder)}}
+  --workdir {{project_folder}} "$@"
+
+
+

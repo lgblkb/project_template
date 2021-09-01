@@ -1,0 +1,9 @@
+- hosts: all
+  vars:
+    pull_project: yes
+  tasks:
+    - include_role: { name: lgblkb, tasks_from: new_base }
+#    - name: 'Create project networks'
+#      docker_network: "{{item}}"
+#      loop: "{{docker_infra.networks|default([])}}"
+#    - debug: msg="Project basement established!"
