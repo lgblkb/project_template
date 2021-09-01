@@ -1,7 +1,10 @@
+proj_name: ${project_name}
 default:
-  networks:
-    imagiflow_network:
-      external: true
+  project_name: ${proj_name}
+  definition:
+    networks:
+      imagiflow_network: { external: true }
+
 #default:
 #  networks:
 #    - name: "${project_name}_network"

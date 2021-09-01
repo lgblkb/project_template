@@ -63,7 +63,7 @@ def make_path(path, value):
 class Base(AnsibleModule):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.results = Box(changed=False)
+        self.results = Box(changed=False, box_dots=True)
         # self.ansible_vars = Box()
 
     def add_facts(self, *facts, **other_facts):
@@ -81,9 +81,8 @@ class Base(AnsibleModule):
             return True
 
         data = remap(data, resolve_pre_post)
-
         config = OmegaConf.create((reference_data + data).to_dict())
-        return Box(OmegaConf.to_container(config, resolve=True)) - reference_data
+        return Box(OmegaConf.to_container(config, resolve=True)) - {k: 1 for k in reference_data if k not in data}
 
     def envise_data(self, file_data: Box, name: Union[bool, str], add=True, **other_base_data) -> Box:
         _other_envs = Box({k: 1 for k in self.results.project_envs}) + dict(default=1)
@@ -117,11 +116,11 @@ class Base(AnsibleModule):
         return Box(name=name, data=env_data)
 
     def envise(self, yaml_file: Union[str, Path], name: Union[bool, str] = '', add=True) -> Box:
-        yaml_file = as_path(Path('settings', yaml_file))
+        yaml_file = as_path(yaml_file)
         # logger.debug("yaml_file: %s", yaml_file)
         if name is not False:
             name = name or ".".join(yaml_file
-                                    .relative_to(self.results.project_folder, 'provision', 'settings')
+                                    .relative_to(self.results.project_folder, 'provision', )
                                     .with_suffix('').parts)
         file_data = Box.from_yaml(filename=yaml_file, default_box=True)
         return self.envise_data(file_data, name=name, add=add)
@@ -147,7 +146,7 @@ class ExtractProjectInfo(Base):
         self.add_results({k: box_sum([targets[key] for key in v]) for k, v in v.merge.items()})
 
     def read_settings_switch(self, yaml_file: Union[str, Path]):
-        switch_data = self.envise(yaml_file, add=False).data
+        switch_data = self.envise(yaml_file, add=False, name=False).data
 
         def walker(p, k, v):
             if not isinstance(v, dict): return True
@@ -216,8 +215,9 @@ class Resolvers(Base):
 
 
 class Deploy(Base):
-    def read_deploy_settings(self, yaml_file: Path):
-        data = self.envise(yaml_file).data
+    def read_deploy_settings(self, deploy_settings: list):
+        for deploy_setting in deploy_settings:
+            self.envise(deploy_setting)
 
 
 class Module(Resolvers, ExtractProjectInfo, Deploy):
@@ -227,7 +227,7 @@ class Module(Resolvers, ExtractProjectInfo, Deploy):
 module = Module(dict(env_name=dict(type='str', required=True),
                      settings_switch=dict(type='str', required=True),
                      vars=dict(type='dict', required=True),
-                     deploy_settings=dict(type='str', required=True),
+                     deploy_settings=dict(type='list', required=True),
                      ))
 
 OmegaConf.register_new_resolver('fmt', module.resolve_fmt)
@@ -240,9 +240,10 @@ def main():
     module.results.update(params.vars)
     module.extract_project_info(env_name=params.env_name)
     module.read_settings_switch(yaml_file=params.settings_switch)
-    # module.generate_commands()
-    # module.read_deploy_settings(yaml_file=params.deploy_settings)
+    module.generate_commands()
+    module.read_deploy_settings(params.deploy_settings)
     module.results.to_yaml(filename=Path(module.results.project_folder).joinpath('settings.yaml'))
+    # module.add_facts(deploy_settings=[v for k, v in module.results.compose.items()])
     module.exit_json(**module.results.to_dict())
 
 

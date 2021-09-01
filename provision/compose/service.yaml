@@ -1,5 +1,5 @@
 default:
-  pre: "{{docker_service}}"
+  pre: "{{docker.service}}"
 
   vars:
     name_prefix: "{{project_name}}"

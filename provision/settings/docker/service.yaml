@@ -1,4 +1,5 @@
 default:
+
   image: "${image_fullname}"
   env:
     ENV_FOR_DYNACONF: "${env_name}"

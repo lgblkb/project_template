@@ -17,7 +17,7 @@ default:
     --volume "/etc/shadow:/etc/shadow:ro"
     --volume "/etc/sudoers.d:/etc/sudoers.d:ro"
     --workdir ${project_folder}
-    ${eval:"' '.join(['--env '+k+'='+str(v) for k, v in docker_service['env'].items()])"}
+    ${eval:"' '.join(['--env '+k+'='+str(v) for k, v in docker.service.env.items()])"}
     ${eval:"' '.join(['--volume '+':'.join([v]*2) for v in volumes])",
     "volumes=
     list(settings['PROJECT']['dirs'].values())+
