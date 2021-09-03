@@ -1,8 +1,0 @@
-default:
-  state: started
-development:
-  restart_policy: unless-stopped
-staging:
-  restart_policy: unless-stopped
-production:
-  state: present

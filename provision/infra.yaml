@@ -5,11 +5,25 @@
     show_container_details: no
     launch_container: yes
     pull_project: yes
+  roles:
+    - lgblkb
   tasks:
-    - include_role: { name: "{{roles_location}}", tasks_from: base }
-    - include_role: { name: "{{roles_location}}", tasks_from: deploy }
-      loop_control: { loop_var: switch_info }
-      with_dict:
-        infra_switch: ../deploy_switches/infra.yaml
+    - name: INITIALIZE
+      lgblkb_task:
+        env_name: "{{env_name}}"
+        settings_switch: 'switch.yaml'
+        deploy_settings:
+          - compose/infra.yaml
+        vars:
+          build_target: "{{build_target}}"
+          infra_volumes_dir: "{{infra_volumes_dir}}"
+          ansible_user_uid: "{{ansible_user_uid}}"
+          ansible_user_gid: "{{ansible_user_gid}}"
+          ansible_user_id: "{{ansible_user_id}}"
+      register: data
+    - docker_compose: "{{item.value}}"
+      with_dict: "{{response.compose}}"
+      loop_control:
+        label: '{{item.key}}'
 
     - debug: msg="Deployment successfull!"

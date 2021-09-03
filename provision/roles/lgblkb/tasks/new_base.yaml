@@ -15,8 +15,8 @@
 #- debug: msg="{{response}}"
 #- debug: msg="{{response.compose.infra}}"
 #- debug: msg="{{}}"
-- docker_compose: "{{item.value}}"
-  with_dict: "{{response.compose}}"
-  loop_control:
-    label: '{{item.key}}'
+#- docker_compose: "{{item.value}}"
+#  with_dict: "{{response.compose}}"
+#  loop_control:
+#    label: '{{item.key}}'
 

@@ -6,12 +6,12 @@ default:
 #    redis: ${read:images/redis.yaml}
 
 development:
-  project_name: global
+  #  project_name: global
   definition:
     services:
       "*":
         pre_:
           networks: ${eval:"[k for k in docker.infra.definition.networks]"}
+      portainer: ${read:images/portainer.yaml}
 
-      pgadmin: ${read:images/pgadmin.yaml}
 

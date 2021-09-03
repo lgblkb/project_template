@@ -1,7 +1,0 @@
-pipelining: yes
-pull_project: yes
-build_docker_image: yes
-launch_container: yes
-show_container_details: no
-vault_secret_path: "{{role_path}}/files/.secret"
-build_target: "base"
