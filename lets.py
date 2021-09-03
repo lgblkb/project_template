@@ -6,6 +6,7 @@ from functools import partial, wraps
 from pathlib import Path
 
 import fire
+from box import Box
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -126,7 +127,7 @@ class Runner(object):
             _run_cmd_parts.append('--gpus all')
 
         # project_name = project_folder.absolute().name.upper()
-        image_fullname = os.getenv('IMAGE_FULLNAME')
+        image_fullname = Box.from_yaml(filename=project_folder.joinpath('settings.yaml')).image_fullname
         _run_cmd_parts.append(image_fullname)
         _run_cmd_parts.append(cmd)
         full_cmd = " ".join(_run_cmd_parts)
