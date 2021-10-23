@@ -1,11 +1,9 @@
 - hosts: all
-  vars:
-    roles_location: ../roles/lgblkb
   tasks:
-    - include_role: { name: "{{roles_location}}", tasks_from: generate_ansible_secret }
-      when: ansible_connection=='local'
+#    - include_role: { name: lgblkb, tasks_from: generate_ansible_secret }
+#      when: ansible_connection=='local'
 
-    - include_role: { name: "{{roles_location}}", tasks_from: pull_project }
+    - include_role: { name: lgblkb, tasks_from: pull_project }
       when: ansible_connection!='local'
 
     - name: Install provision dependencies

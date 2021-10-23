@@ -8,7 +8,7 @@
   roles:
     - lgblkb
   tasks:
-    - name: INITIALIZE
+    - name: Initialize base
       lgblkb_task:
         env_name: "{{env_name}}"
         settings_switch: 'switch.yaml'

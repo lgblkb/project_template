@@ -11,5 +11,5 @@
     accept_hostkey: yes
     key_file: "{{key_file}}"
     force: yes
-    version: no_dagster
+    version: "{{target_branch|default('master')}}"
 
