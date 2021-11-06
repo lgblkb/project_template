@@ -8,6 +8,7 @@ all:
     env_name: "development"
     build_target: 'builder'
     infra_volumes_dir: "/storage/infra_volumes"
+    target_branch: master
 
 
 

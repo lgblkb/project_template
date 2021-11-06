@@ -17,9 +17,14 @@
           ansible_user_gid: "{{ansible_user_gid}}"
           ansible_user_id: "{{ansible_user_id}}"
       register: data
-#    - debug: msg="{{project_folder}}"
+    #    - debug: msg="{{project_folder}}"
     #    - include_role: { name: lgblkb, tasks_from: new_base }
     #    - name: 'Create project networks'
     #      docker_network: "{{item}}"
     #      loop: "{{docker_infra.networks|default([])}}"
+    - file:
+        path: 'commands'
+        mode: u=rwx,g=rx,o=rx
+#        owner: "{{ansible_user_id}}"
+        recurse: yes
     - debug: msg="Project basement established!"

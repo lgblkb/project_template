@@ -11,6 +11,7 @@ all:
   vars:
     env_name: "production"
     build_target: 'production'
+    target_branch: master
 
 
 
