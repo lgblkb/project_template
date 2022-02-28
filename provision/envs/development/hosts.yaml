@@ -2,14 +2,10 @@ all:
   hosts:
     localhost:
       ansible_connection: local
-      ansible_python_interpreter: "/usr/bin/python3"
-      project_folder: "{{playbook_dir|dirname}}"
+      ansible_python_interpreter: /home/lgblkb/.local/share/virtualenvs/project_template/bin/python
+      project_folder: '{{playbook_dir|dirname}}'
   vars:
-    env_name: "development"
-    build_target: 'builder'
-    infra_volumes_dir: "/storage/infra_volumes"
+    build_target: builder
+    env_name: development
+    infra_volumes_dir: /storage/infra_volumes
     target_branch: master
-
-
-
-

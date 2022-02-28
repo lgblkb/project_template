@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import subprocess
 from typing import Optional
 
 import typer
@@ -56,6 +57,14 @@ def run(ctx: typer.Context,
     run_cmd(*cmd_parts)
 
 
+def update_ansible_python_interpreter():
+    filename = project_folder / 'provision' / 'envs' / 'development' / 'hosts.yaml'
+    hosts_data = Box.from_yaml(filename=filename)
+    python_interpreter = subprocess.check_output('which python'.split(' ')).strip().decode()
+    hosts_data.all.hosts.localhost.ansible_python_interpreter = python_interpreter
+    hosts_data.to_yaml(filename=filename)
+
+
 @app.command(context_settings=context_settings, help='Play ansible playbook in provided environment.')
 def play(ctx: typer.Context,
          playbook_name=typer.Argument('base', autocompletion=playbook_autocompletion, ),
@@ -63,6 +72,10 @@ def play(ctx: typer.Context,
     cmd_parts = list()
     cmd_parts.append(f'ansible-playbook {playbooks[playbook_name]}')
     cmd_parts.append(f'--inventory {envs_folder / env}')
+
+    if playbook_name == 'init' and env == 'development':
+        update_ansible_python_interpreter()
+
     run_cmd(*cmd_parts, ctx=ctx)
 
 

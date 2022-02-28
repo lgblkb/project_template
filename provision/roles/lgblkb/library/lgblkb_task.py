@@ -131,8 +131,8 @@ class ExtractProjectInfo(Base):
     def extract_project_info(self, env_name):
         toml_file = find_file('pyproject.toml')
         toml_data = Box.from_toml(filename=toml_file)
-        poetry_info = toml_data.tool.poetry
-        project_name = poetry_info.name
+        info = toml_data.project
+        project_name = info.name
         image_name = f"{project_name}-{env_name}"
         image_tag = 'latest'
         image_fullname = f"{image_name}:{image_tag}"

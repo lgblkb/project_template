@@ -1,0 +1,16 @@
+docker run \
+	--env-file .env \
+	--shm-size="8g" \
+	--volume "/etc/group:/etc/group:ro" \
+	--volume "/etc/passwd:/etc/passwd:ro" \
+	--volume "/etc/shadow:/etc/shadow:ro" \
+	--volume "/etc/sudoers.d:/etc/sudoers.d:ro" \
+	--workdir /home/lgblkb/PycharmProjects/project_template \
+	--env ENV_FOR_DYNACONF=development \
+	--env C_FORCE_ROOT=1 \
+	--env MPLCONFIGDIR=/storage/caches \
+	--env GDAL_CACHEMAX=256 \
+	--env NUMEXPR_MAX_THREADS=8 \
+	--volume /storage/caches:/storage/caches \
+	--volume /storage/data:/storage/data \
+	--volume /home/lgblkb/PycharmProjects/project_template:/home/lgblkb/PycharmProjects/project_template "$@"

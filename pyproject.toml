@@ -1,9 +1,9 @@
 [project]
-name = ""
-version = ""
+name = "test_project_template"
+version = "1.0.0"
 description = ""
 authors = [
-    {name = "Dias Bakhtiyarov", email = "dbakhtiyarov@nu.edu.kz"},
+    { name = "Dias Bakhtiyarov", email = "dbakhtiyarov@nu.edu.kz" },
 ]
 dependencies = [
     "python-box>=5.4.1",
@@ -17,7 +17,7 @@ dependencies = [
     "httpx>=0.22.0",
 ]
 requires-python = ">=3.8"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
 [project.urls]
 Homepage = ""

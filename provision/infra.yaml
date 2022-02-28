@@ -1,6 +1,6 @@
 - hosts: all
   vars:
-    roles_location: ../roles/lgblkb
+    #    roles_location: ../roles/lgblkb
     build_docker_image: yes
     show_container_details: no
     launch_container: yes
@@ -8,7 +8,7 @@
   roles:
     - lgblkb
   tasks:
-    - name: Initialize base
+    - name: INITIALIZE
       lgblkb_task:
         env_name: "{{env_name}}"
         settings_switch: 'settings/switch.yaml'
@@ -16,14 +16,19 @@
           - compose/infra.yaml
         vars:
           build_target: "{{build_target}}"
+          project_folder: "{{project_folder}}"
           infra_volumes_dir: "{{infra_volumes_dir}}"
           ansible_user_uid: "{{ansible_user_uid}}"
           ansible_user_gid: "{{ansible_user_gid}}"
           ansible_user_id: "{{ansible_user_id}}"
       register: data
+
+    - debug: msg="{{data.compose}}"
+
     - docker_compose: "{{item.value}}"
-      with_dict: "{{response.compose}}"
+      with_dict: "{{data.compose}}"
       loop_control:
         label: '{{item.key}}'
+
 
     - debug: msg="Deployment successfull!"
