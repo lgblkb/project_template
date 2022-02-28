@@ -148,3 +148,4 @@ cython_debug/
 provision_old/.toml_info.yaml
 /provision_old/roles/lgblkb/files/.toml_info.yaml
 settings.yaml
+provision/commands/*.sh

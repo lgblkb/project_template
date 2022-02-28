@@ -1,156 +1,110 @@
 #!/usr/bin/env python3
-import logging
 import os
-import shutil
-from functools import partial, wraps
-from pathlib import Path
+import subprocess
+from typing import Optional
 
-import fire
+import typer
 from box import Box
-from dotenv import load_dotenv
 
-load_dotenv()
+from provision.utils.base import project_folder, commands_folder, run_cmd
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('lgblkb')
-
-project_folder = Path(__file__).parent
-provision_folder = project_folder.joinpath('provision')
-scripts_folder = provision_folder  # .joinpath('scripts')
-commands_folder = provision_folder.joinpath('commands')
-secret_filepath = provision_folder.joinpath('roles/lgblkb/files/.secret')
-
-vault_parts = ['--vault-password-file', secret_filepath]
+__version__ = '1.0.0'
+app = typer.Typer()
+state = dict(verbose=0)
+context_settings = {"allow_extra_args": True, "ignore_unknown_options": True}
 
 
-def compose(filename, target, vault=False, **options):
-    parts = ['ansible-playbook', scripts_folder.joinpath(f'{filename}.yaml')]
-    parts += ['--inventory', provision_folder.joinpath('envs', target)]
-
-    for k, v in options.items():
-        if type(v) is bool and v:
-            if len(k) == 1:
-                parts.append(f'-{k}')
-            elif 'vv' in k:
-                parts.append(f'-{k}')
-            else:
-                parts.append(f'--{k}')
-        else:
-            parts.append(f'--{k}={v}')
-    if vault:
-        parts += vault_parts
-    cmd = """ """.join(map(str, parts))
-    logger.debug("cmd: %s", cmd)
-    return cmd
+@app.command(context_settings=context_settings, help="Build project's docker image")
+def build(ctx: typer.Context):
+    run_cmd(commands_folder / 'docker_build.sh', ctx=ctx)
 
 
-default_target = 'development'
-default_filename = 'init'
+envs_folder = project_folder / 'provision' / 'envs'
 
 
-def add_method(cls, name=''):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            return func(self, *args, **kwargs)
-
-        setattr(cls, name or func.__name__, wrapper)
-        # Note we are not binding func, but wrapper which accepts self but does exactly the same as func
-        return func  # returning func means func can still be used normally
-
-    return decorator
+def env_autocompletion():
+    return os.listdir(envs_folder)
 
 
-class Play(object):
-    def __init__(self, filename=default_filename, target=default_target, **kwargs):
-        self._target = target
-        self._filename = filename
-        self._tasks = list()
-        self.kwargs = kwargs
-
-    def play(self):
-        for task in self._tasks:
-            os.system(task(target=self._target, **self.kwargs))
-
-    def check(self):
-        for idx, task in enumerate(self._tasks):
-            logger.debug("task %s: %s", idx, task)
-
-    def on(self, target):
-        if target == 'dev': target = 'development'
-        self._target = target
-        return self
-
-    def __str__(self):
-        self.play()
-        return "Done."
+playbooks = {p.with_suffix('').name: p for p in list((project_folder / 'provision').glob('*.yaml'))}
 
 
-class Runner(object):
-    @staticmethod
-    def build(complete=False):
-        poetry_cache_folder = project_folder.joinpath('provision/roles/lgblkb/files/poetry_cache')
-        poetry_cache_folder.mkdir(exist_ok=True)
-        copy_lock = lambda: shutil.copyfile(
-            *[x.joinpath('poetry.lock') for x in [project_folder, poetry_cache_folder]])
-        copy_toml = lambda: shutil.copyfile(
-            *[x.joinpath('pyproject.toml') for x in [project_folder, poetry_cache_folder]])
-        if complete:
-            os.remove(poetry_cache_folder.joinpath('pyproject.toml'))
-            os.remove(poetry_cache_folder.joinpath('poetry.lock'))
-            copy_toml()
-            copy_lock()
-        else:
-            if not poetry_cache_folder.joinpath('poetry.lock').exists():
-                copy_lock()
-            if not poetry_cache_folder.joinpath('pyproject.toml').exists():
-                copy_toml()
-
-        _run_cmd_parts = [str(commands_folder.joinpath('docker_build')) + ".sh"]
-        full_cmd = " ".join(_run_cmd_parts)
-        os.system(full_cmd)
-
-    @staticmethod
-    def run(key='docker_run', rm=True, it=True, display=False, gpus=False, root=False, cmd='bash'):
-        _run_cmd_parts = [str(commands_folder.joinpath(key)) + ".sh"]
-        if rm:
-            _run_cmd_parts.append('--rm')
-        if it:
-            _run_cmd_parts.append('-it')
-        if display:
-            os.system('xhost +')
-            _run_cmd_parts.append('--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"')
-            _run_cmd_parts.append('--env="DISPLAY"')
-        if root:
-            _run_cmd_parts.append('--user root')
-        if gpus:
-            _run_cmd_parts.append('--gpus all')
-
-        # project_name = project_folder.absolute().name.upper()
-        image_fullname = Box.from_yaml(filename=project_folder.joinpath('settings.yaml')).image_fullname
-        _run_cmd_parts.append(image_fullname)
-        _run_cmd_parts.append(cmd)
-        full_cmd = " ".join(_run_cmd_parts)
-        logger.debug("full_cmd: %s", full_cmd)
-        os.system(full_cmd)
+def playbook_autocompletion():
+    return list(playbooks)
 
 
-class Entry(Runner):
-    def __init__(self):
-        for filename in [x.with_suffix('').name for x in scripts_folder.glob('*.y*ml')]:
-            # noinspection PyTypeChecker
-            add_method(Play, filename)(partial(create_task, filename=filename))
-        self.play = Play()
+@app.command(context_settings=context_settings, help='Create and enter containerized environment for local development')
+def run(ctx: typer.Context,
+        cmd: str = typer.Option('bash', '--cmd'),
+        display: bool = typer.Option(False, '--display'),
+        gpus: bool = typer.Option(False, '--gpus'),
+        root: bool = typer.Option(False, '--root')):
+    cmd_parts = list()
+    cmd_parts.append(commands_folder / 'docker_run.sh')
+    cmd_parts.append('-it --rm')
+    if display:
+        os.system('xhost +')
+        cmd_parts.append('--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"')
+        cmd_parts.append('--env="DISPLAY"')
+    if root:
+        cmd_parts.append('--user root')
+    if gpus:
+        cmd_parts.append('--gpus all')
+    image_fullname = Box.from_yaml(filename=project_folder.joinpath('settings.yaml')).image_fullname
+    cmd_parts.extend(ctx.args)
+    cmd_parts.append(image_fullname)
+    cmd_parts.append(cmd)
+    run_cmd(*cmd_parts)
 
 
-def create_task(self, filename, **kwargs):
-    self._tasks.append(partial(compose, filename=filename, target=self._target, **kwargs))
-    return self
+def update_ansible_python_interpreter():
+    filename = project_folder / 'provision' / 'envs' / 'development' / 'hosts.yaml'
+    hosts_data = Box.from_yaml(filename=filename)
+    python_interpreter = subprocess.check_output('which python'.split(' ')).strip().decode()
+    hosts_data.all.hosts.localhost.ansible_python_interpreter = python_interpreter
+    hosts_data.to_yaml(filename=filename)
 
 
-def main():
-    fire.Fire(Entry)
+@app.command(context_settings=context_settings, help='Play ansible playbook in provided environment.')
+def play(ctx: typer.Context,
+         playbook_name=typer.Argument('base', autocompletion=playbook_autocompletion, ),
+         env=typer.Option('development', '--env', '-e', autocompletion=env_autocompletion)):
+    cmd_parts = list()
+    cmd_parts.append(f'ansible-playbook {playbooks[playbook_name]}')
+    cmd_parts.append(f'--inventory {envs_folder / env}')
+
+    if playbook_name == 'init' and env == 'development':
+        update_ansible_python_interpreter()
+
+    run_cmd(*cmd_parts, ctx=ctx)
 
 
-if __name__ == '__main__':
-    main()
+def version_callback(value: bool):
+    if value:
+        typer.echo(f"{project_folder.name}: {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(verbose: int = typer.Option(0, '--verbose', '-v', count=True),
+         version: Optional[bool] = typer.Option(None, "--version", callback=version_callback, is_eager=True)
+         ):
+    if version:
+        pass
+    """
+    This tool enables:
+
+        1. Quick setup of local development environment.
+
+        2. Powerful settings management with 12-factor methodology in mind.
+
+        3. Effortless project deployment to remote servers.
+
+    """
+    if verbose:
+        typer.echo(f"Verbose level {verbose}")
+        state["verbose"] = verbose
+
+
+if __name__ == "__main__":
+    app()

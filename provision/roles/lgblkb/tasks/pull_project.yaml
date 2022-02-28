@@ -6,7 +6,7 @@
 
 - name: Git pull
   git:
-    repo: "{{master_toml_meta.out.tool.poetry.repository}}"
+    repo: "{{master_toml_meta.out.project.repository}}"
     dest: "{{project_folder}}"
     accept_hostkey: yes
     key_file: "{{key_file}}"

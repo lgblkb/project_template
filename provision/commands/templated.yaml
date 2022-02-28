@@ -7,6 +7,7 @@ default:
     --build-arg USERNAME=${ansible_user_id}
     --build-arg PROJECT_DIR=${project_folder}
     ${project_folder}
+    "$@"
 
   docker_run: >-
     docker run

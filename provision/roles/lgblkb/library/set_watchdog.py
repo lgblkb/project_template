@@ -129,7 +129,7 @@ def evaluate(params: Box):
 
 
 def test():
-    path = r'/home/lgblkb/PycharmProjects/project_template/provision/deploy_switches/service.yaml'
+    path = r'/provision_old/deploy_switches/service.yaml'
     res = evaluate(Box(switch=Box.from_yaml(filename=path).default))
     logger.info("res:\n%s", pformat(res))
 
