@@ -1,5 +1,13 @@
 # `./lets.py`
 
+This tool enables:
+
+1. Quick setup of local development environment.
+
+2. Powerful settings management with 12-factor methodology in mind.
+
+3. Effortless project deployment to remote servers.
+
 **Usage**:
 
 ```console
