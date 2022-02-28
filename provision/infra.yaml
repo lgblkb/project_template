@@ -23,7 +23,7 @@
           ansible_user_id: "{{ansible_user_id}}"
       register: data
 
-    - debug: msg="{{data.compose}}"
+    #    - debug: msg="{{data.compose}}"
 
     - docker_compose: "{{item.value}}"
       with_dict: "{{data.compose}}"
