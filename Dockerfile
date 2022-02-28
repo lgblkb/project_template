@@ -33,24 +33,12 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
     libeccodes0 &&\
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt-get update -y && \
-    add-apt-repository ppa:deadsnakes/ppa -y &&\
-    apt-get install -y\
-    python3.10-dev \
-    python3.10-venv \
-    python3.10-distutils \
-    python3.10-gdbm \
-    python3.10-tk &&\
-    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10 &&\
-    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
 
-
-#    python3 -m venv $VIRTUAL_ENV &&\
-RUN pip install --no-cache-dir -U pip wheel setuptools numpy cython typer[all] &&\
-    curl https://rclone.org/install.sh | bash&&\
+RUN curl https://rclone.org/install.sh | bash &&\
+    apt-get update -y && apt-get install -y --no-install-recommends \
+    python3.8-venv python3-pip python3-tk &&\
     curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 - -p /opt/pdm &&\
-    pdm --pep582 bash>> ~/.bash_profile &&\
-    pdm completion bash > /etc/bash_completion.d/pdm.bash-completion
+    pip install --no-cache-dir -U pip wheel setuptools numpy cython typer[all] python-box ruamel.yaml
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -72,3 +60,14 @@ RUN groupadd -g ${GROUP_ID} ${USERNAME} &&\
 USER ${USERNAME}
 WORKDIR ${PROJECT_DIR}
 
+FROM builder as production
+
+ARG USER_ID
+ARG GROUP_ID
+ARG USERNAME
+ARG PROJECT_DIR
+
+COPY . .
+
+#COPY pyproject.toml pdm.lock ./
+RUN pdm install --prod --no-lock --no-editable
