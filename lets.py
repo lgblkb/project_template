@@ -1,12 +1,24 @@
 #!/usr/bin/env python3
 import os
 import subprocess
+from pathlib import Path
 from typing import Optional
 
 import typer
 from box import Box
 
-from provision.utils.base import project_folder, commands_folder, run_cmd
+project_folder = Path(__file__).parent.absolute()
+commands_folder = project_folder / 'provision' / 'commands'
+
+
+def run_cmd(*cmd_parts, ctx: typer.Context = None):
+    cmd_parts = list(cmd_parts)
+    if ctx is not None:
+        cmd_parts.extend(ctx.args)
+    cmd = " ".join(map(str, cmd_parts))
+    typer.secho(cmd, fg=typer.colors.GREEN, bold=True)
+    return os.system(cmd)
+
 
 __version__ = '1.0.0'
 app = typer.Typer()
