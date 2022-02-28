@@ -11,7 +11,7 @@
     - name: Initialize base
       lgblkb_task:
         env_name: "{{env_name}}"
-        settings_switch: 'switch.yaml'
+        settings_switch: 'settings/switch.yaml'
         deploy_settings:
           - compose/infra.yaml
         vars:
