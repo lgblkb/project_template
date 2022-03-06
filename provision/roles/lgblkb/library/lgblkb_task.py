@@ -15,7 +15,7 @@ from boltons.iterutils import remap, research
 from box import Box
 from omegaconf import OmegaConf
 
-logging.basicConfig(filename='logs.log', level=logging.DEBUG, filemode='w')
+logging.basicConfig(filename='logs.log', level=logging.DEBUG)
 logger = logging.getLogger('lgblkb')
 
 as_path = lambda path: Path(os.path.abspath(path))
@@ -238,6 +238,9 @@ OmegaConf.register_new_resolver('read', module.resolve_read)
 def main():
     params = Box(module.params)
     module.results.update(params.vars)
+    # module.results.curdir = str(Path(os.curdir).resolve())
+    # logger.debug("os.curdir: {}", os.curdir)
+    os.chdir(Path(module.results.project_folder) / 'provision')
     module.extract_project_info(env_name=params.env_name)
     module.read_settings_switch(yaml_file=params.settings_switch)
     module.generate_commands()
