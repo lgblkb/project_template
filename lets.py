@@ -97,10 +97,16 @@ def version_callback(value: bool):
         raise typer.Exit()
 
 
+@app.command(context_settings=context_settings, help='Play ansible playbook in provided environment.')
+def prun(ctx: typer.Context):
+    run_cmd('pdm run python -m', *ctx.args)
+
+
 @app.callback()
-def main(verbose: int = typer.Option(0, '--verbose', '-v', count=True),
-         version: Optional[bool] = typer.Option(None, "--version", callback=version_callback, is_eager=True)
-         ):
+def main(
+        verbose: int = typer.Option(0, '--verbose', '-v', count=True),
+        version: Optional[bool] = typer.Option(None, "--version", callback=version_callback, is_eager=True)
+):
     if version:
         pass
     """
