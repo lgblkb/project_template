@@ -1,1 +1,6 @@
-default: { }
+proj_name: ${project_name}
+default:
+  project_name: ${proj_name}
+  definition:
+    networks:
+      <some_network>: { external: true }
