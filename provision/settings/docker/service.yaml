@@ -1,12 +1,16 @@
 default:
-
   image: "${image_fullname}"
-  env:
-    ENV_FOR_DYNACONF: "${env_name}"
+  environment:
     C_FORCE_ROOT: "1"
-    MPLCONFIGDIR: "${settings.PROJECT.dirs.cache_folder}"
     GDAL_CACHEMAX: "256"
     NUMEXPR_MAX_THREADS: "8"
+
+  networks: >-
+    ${eval:
+    "list(networks.keys())",
+    "networks=docker.infra.definition.networks"
+    }
+
   volumes: >-
     ${eval:
     "[':'.join([v] * 2) for v in volumes]",
@@ -14,4 +18,17 @@ default:
     list(settings['PROJECT']['dirs'].values())+
     [project_folder]
     "}
-  working_dir: "${project_folder}"
+
+development:
+  environment:
+    TBOT_TOKEN: '5201739106:AAH0n4l5-NrlRXJ2mk4Y-nF-AKm54lUdf8Q'
+    DATA_SOURCE_NAME: islamkhan_books
+    MAX_VOTES: 25
+
+production:
+  volumes: >-
+    ${eval:
+    "[':'.join([v] * 2) for v in volumes]",
+    "volumes=
+    list(settings['PROJECT']['dirs'].values())
+    "}

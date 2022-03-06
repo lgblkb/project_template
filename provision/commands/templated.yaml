@@ -11,6 +11,25 @@ default:
 
   docker_run: >-
     docker run
+    --env-file .env 
+    --shm-size="8g"
+    --volume "/etc/group:/etc/group:ro"
+    --volume "/etc/passwd:/etc/passwd:ro"
+    --volume "/etc/shadow:/etc/shadow:ro"
+    --volume "/etc/sudoers.d:/etc/sudoers.d:ro"
+    --workdir ${project_folder}
+    ${eval:"' '.join(['--env '+k+'='+str(v) for k, v in docker.service.environment.items()])"}
+    ${eval:"' '.join(['--volume '+':'.join([v]*2) for v in volumes])",
+    "volumes=
+    list(settings['PROJECT']['dirs'].values())+
+    [project_folder]"
+    }
+    --network ${eval: "list(definition.networks.keys())[0]", "definition=docker.infra.definition"}
+    "$@"
+
+production:
+  docker_run: >-
+    docker run
     --env-file .env
     --shm-size="8g"
     --volume "/etc/group:/etc/group:ro"
@@ -18,15 +37,10 @@ default:
     --volume "/etc/shadow:/etc/shadow:ro"
     --volume "/etc/sudoers.d:/etc/sudoers.d:ro"
     --workdir ${project_folder}
-    ${eval:"' '.join(['--env '+k+'='+str(v) for k, v in docker.service.env.items()])"}
+    ${eval:"' '.join(['--env '+k+'='+str(v) for k, v in docker.service.environment.items()])"}
     ${eval:"' '.join(['--volume '+':'.join([v]*2) for v in volumes])",
     "volumes=
-    list(settings['PROJECT']['dirs'].values())+
-    [project_folder]"
+    list(settings['PROJECT']['dirs'].values())"
     }
+    --network ${eval: "list(definition.networks.keys())[0]", "definition=docker.infra.definition"}
     "$@"
-
-#    ${eval:
-#        "'--network '+n[0]['name'] if n else ''",
-#        "n=docker_infra['networks']"
-#        }
