@@ -1,0 +1,14 @@
+version: '3'
+
+x-params: &params
+  image: '${APP_IMAGE_NAME}'
+  volumes:
+    - '${PROJECT_PATH}:${PROJECT_PATH}'
+    - '${STORAGE_FOLDER}:${STORAGE_FOLDER}'
+    - '${HOME}/.ssh:${HOME}/.ssh'
+
+services:
+  app:
+    <<: *params
+    container_name: '${PROJECT_NAME}'
+    command: bash

@@ -1,5 +1,0 @@
-default:
-  image: 'sosedoff/pgweb'
-  name: pgweb
-  ports:
-    - "8081:8081"

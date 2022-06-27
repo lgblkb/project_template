@@ -1,36 +1,14 @@
-[project]
-name = "project_template"
-version = "1.0.0"
+[tool.poetry]
+name = "jonda_health_ocr"
+version = "0.1.0"
 description = ""
-repository = "git@github.com:lgblkb/project_template.git"
-authors = [
-    { name = "Dias Bakhtiyarov", email = "dbakhtiyarov@nu.edu.kz" },
-]
-dependencies = [
-    "python-box>=5.4.1",
-    "boltons>=21.0.0",
-    "more-itertools>=8.12.0",
-    "numpy>=1.22.2",
-    "pandas>=1.4.1",
-    "typer[all]>=0.4.0",
-    "plum-dispatch>=1.5.8",
-    "loguru>=0.6.0",
-    "httpx>=0.22.0",
-    "python-telegram-bot>=13.11",
-    "wrapt>=1.13.3",
-    "ujson>=5.1.0",
-    "xlrd>=2.0.1",
-    "openpyxl>=3.0.9",
-    "sqlalchemy>=1.4.31",
-    "pydantic>=1.9.0",
-]
-requires-python = ">=3.8"
-license = { text = "MIT" }
+authors = ["lgblkb <dbakhtiyarov@nu.edu.kz>"]
 
-[project.urls]
-Homepage = ""
-[tool.pdm]
+[tool.poetry.dependencies]
+python = "~3.10"
+
+[tool.poetry.dev-dependencies]
 
 [build-system]
-requires = ["pdm-pep517"]
-build-backend = "pdm.pep517.api"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

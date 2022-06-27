@@ -1,127 +1,132 @@
 #!/usr/bin/env python3
+import getpass
 import os
 import subprocess
+from enum import Enum
 from pathlib import Path
-from typing import Optional
 
+import dotenv
 import typer
-from box import Box
+from loguru import logger
 
-project_folder = Path(__file__).parent.absolute()
-commands_folder = project_folder / 'provision' / 'commands'
-
-
-def run_cmd(*cmd_parts, ctx: typer.Context = None):
-    cmd_parts = list(cmd_parts)
-    if ctx is not None:
-        cmd_parts.extend(ctx.args)
-    cmd = " ".join(map(str, cmd_parts))
-    typer.secho(cmd, fg=typer.colors.GREEN, bold=True)
-    return os.system(cmd)
-
-
-__version__ = '1.0.0'
 app = typer.Typer()
-state = dict(verbose=0)
-context_settings = {"allow_extra_args": True, "ignore_unknown_options": True}
+
+project_folder = Path(__file__).resolve().parent
 
 
-@app.command(context_settings=context_settings, help="Build project's docker image")
-def build(ctx: typer.Context):
-    run_cmd(commands_folder / 'docker_build.sh', ctx=ctx)
+class DotenvMan:
+    def __init__(self, env_path: Path = Path('.env')):
+        self.env_path = env_path
+        self.data = self.get()
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+        dotenv.set_key(self.env_path, key, value)
+
+    def get(self):
+        env_data = dotenv.dotenv_values(self.env_path)
+        return env_data
+
+    def write(self):
+        for k, v in self.data.items():
+            dotenv.set_key(self.env_path, k, v)
 
 
-envs_folder = project_folder / 'provision' / 'envs'
+dm = DotenvMan()
 
 
-def env_autocompletion():
-    return os.listdir(envs_folder)
+def run_cmd(cmd: str):
+    logger.debug("cmd: {}", cmd)
+    os.system(cmd)
 
 
-playbooks = {p.with_suffix('').name: p for p in list((project_folder / 'provision').glob('*.yaml'))}
+@app.command()
+def build(tag: str = typer.Option(f"{project_folder.name}:latest", '--tag', '-t'), env_name: str = 'development'):
+    poetry_version = subprocess.run('poetry --version'.split(' '),
+                                    capture_output=True, text=True).stdout.split(' ')[-1]
+    dm['PROJECT_NAME'] = project_folder.name
+    dm['APP_IMAGE_NAME'] = tag
+    dm['PROJECT_PATH'] = str(project_folder)
+    cmd = f'docker image build ' \
+          f'-t {tag} ' \
+          f'--build-arg CUDA_VERSION_TAG={dm[EnvKeys.CUDA_VERSION_TAG]} ' \
+          f'--build-arg USER_ID={os.getuid()} ' \
+          f'--build-arg GROUP_ID={os.getgid()} ' \
+          f'--build-arg USERNAME={getpass.getuser()} ' \
+          f"--build-arg PROJECT_PATH='{project_folder}' " \
+          f'--build-arg ENV_NAME={env_name} ' \
+          f"--build-arg POETRY_VERSION='{poetry_version}' ."
+    run_cmd(cmd)
 
 
-def playbook_autocompletion():
-    return list(playbooks)
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def run(ctx: typer.Context, command: str = typer.Option('bash', '--command', '--cmd'),
+        display: bool = typer.Option(True)):
+    # cmd = ' '.join([f'docker-compose run -it --rm app'] + ctx.args)
 
-
-@app.command(context_settings=context_settings, help='Create and enter containerized environment for local development')
-def run(ctx: typer.Context,
-        cmd: str = typer.Option('bash', '--cmd'),
-        display: bool = typer.Option(False, '--display'),
-        gpus: bool = typer.Option(False, '--gpus'),
-        root: bool = typer.Option(False, '--root')):
-    cmd_parts = list()
-    cmd_parts.append(commands_folder / 'docker_run.sh')
-    cmd_parts.append('-it --rm')
+    cmd_parts = ['docker run -it --rm']
+    for v in [dm['PROJECT_PATH'], dm['STORAGE_FOLDER']]:
+        cmd_parts.append(f"-v {v}:{v}")
+    # cmd_parts.append('--device /dev/snd')
     if display:
         os.system('xhost +')
         cmd_parts.append('--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"')
         cmd_parts.append('--env="DISPLAY"')
-    if root:
-        cmd_parts.append('--user root')
-    if gpus:
-        cmd_parts.append('--gpus all')
-    image_fullname = Box.from_yaml(filename=project_folder.joinpath('settings.yaml')).image_fullname
     cmd_parts.extend(ctx.args)
-    cmd_parts.append(image_fullname)
-    cmd_parts.append(cmd)
-    run_cmd(*cmd_parts)
+    cmd_parts.append(f"{dm['APP_IMAGE_NAME']} {command}")
+    cmd = " ".join(cmd_parts)
+    run_cmd(cmd)
 
 
-def update_ansible_python_interpreter():
-    filename = project_folder / 'provision' / 'envs' / 'development' / 'hosts.yaml'
-    hosts_data = Box.from_yaml(filename=filename)
-    python_interpreter = subprocess.check_output('which python'.split(' ')).strip().decode()
-    hosts_data.all.hosts.localhost.ansible_python_interpreter = python_interpreter
-    hosts_data.to_yaml(filename=filename)
+@app.command()
+def save_env(file=typer.Option(Path('environment.yaml'))):
+    cmd = f'conda env export > {file}'
+    run_cmd(cmd)
 
 
-@app.command(context_settings=context_settings, help='Play ansible playbook in provided environment.')
-def play(ctx: typer.Context,
-         playbook_name=typer.Argument('base', autocompletion=playbook_autocompletion, ),
-         env=typer.Option('development', '--env', '-e', autocompletion=env_autocompletion)):
-    cmd_parts = list()
-    cmd_parts.append(f'ansible-playbook {playbooks[playbook_name]}')
-    cmd_parts.append(f'--inventory {envs_folder / env}')
-
-    if playbook_name == 'init' and env == 'development':
-        update_ansible_python_interpreter()
-
-    run_cmd(*cmd_parts, ctx=ctx)
+@app.command()
+def run_jupyter():
+    cmd = 'docker-compose up jupyter_server && docker-compose rm -fsv'
+    run_cmd(cmd)
 
 
-def version_callback(value: bool):
-    if value:
-        typer.echo(f"{project_folder.name}: {__version__}")
-        raise typer.Exit()
+def resolve_storage_folder():
+    if 'STORAGE_FOLDER' in dm.data:
+        return dm['STORAGE_FOLDER']
 
 
-@app.command(context_settings=context_settings, help='Play ansible playbook in provided environment.')
-def prun(ctx: typer.Context):
-    run_cmd('pdm run python -m', *ctx.args)
+class Resolve:
+    def __init__(self, env_key: str):
+        self.env_key = env_key
+
+    def __call__(self):
+        if self.env_key in dm.data:
+            return dm[self.env_key]
 
 
-@app.callback()
-def main(
-        verbose: int = typer.Option(0, '--verbose', '-v', count=True),
-        version: Optional[bool] = typer.Option(None, "--version", callback=version_callback, is_eager=True)
-):
-    if version:
-        pass
-    """
-    This tool enables:
+def resolve_cuda_version():
+    if 'CUDA_VERSION_TAG' in dm.data:
+        return dm['CUDA_VERSION_TAG']
 
-        1. Quick setup of local development environment.
 
-        2. Powerful settings management with 12-factor methodology in mind.
+class EnvKeys(str, Enum):
+    STORAGE_FOLDER = 'STORAGE_FOLDER'
+    CUDA_VERSION_TAG = 'CUDA_VERSION_TAG'
 
-        3. Effortless project deployment to remote servers.
 
-    """
-    if verbose:
-        typer.echo(f"Verbose level {verbose}")
-        state["verbose"] = verbose
+@app.command()
+def init(storage_folder: Path = typer.Option(Resolve(EnvKeys.STORAGE_FOLDER), '--storage-folder', prompt=True),
+         cuda_version: str = typer.Option(Resolve(EnvKeys.CUDA_VERSION_TAG), '--cuda-version', prompt=True)):
+    (storage_folder := storage_folder.resolve()).mkdir(exist_ok=True, parents=True)
+
+    for path in ['.env', '.gitignore', '.dockerignore']:
+        Path(path).touch(exist_ok=True)
+
+    dm[EnvKeys.STORAGE_FOLDER] = str(storage_folder)
+    dm[EnvKeys.CUDA_VERSION_TAG] = cuda_version.strip()
 
 
 if __name__ == "__main__":

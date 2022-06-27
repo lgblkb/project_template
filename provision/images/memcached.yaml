@@ -1,6 +1,0 @@
-default:
-  image: "memcached:latest"
-  name: "${infra.MEMCACHED.host}"
-  command: "memcached --memory-limit=1024 --port=11211 --conn-limit=1024 --max-item-size=100m"
-#    ports:
-#      - "11211:11211"

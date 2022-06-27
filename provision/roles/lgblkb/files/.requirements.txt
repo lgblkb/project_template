@@ -1,7 +1,0 @@
-boltons
-asteval
-omegaconf
-toml
-requests
-docker
-docker-compose
