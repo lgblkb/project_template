@@ -1,82 +1,125 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import getpass
 import os
 import subprocess
 from enum import Enum
 from pathlib import Path
+from typing import List
 
 import dotenv
 import typer
-from loguru import logger
+from rich.console import Console
 
+console = Console(color_system='auto')
 app = typer.Typer()
 
 project_folder = Path(__file__).resolve().parent
 
 
-class DotenvMan:
-    def __init__(self, env_path: Path = Path('.env')):
-        self.env_path = env_path
-        self.data = self.get()
-
-    def __getitem__(self, item):
-        return self.data[item]
-
-    def __setitem__(self, key, value):
-        self.data[key] = value
-        dotenv.set_key(self.env_path, key, value)
-
-    def get(self):
-        env_data = dotenv.dotenv_values(self.env_path)
-        return env_data
-
-    def write(self):
-        for k, v in self.data.items():
-            dotenv.set_key(self.env_path, k, v)
-
-
-dm = DotenvMan()
+# class DotenvMan:
+#     def __init__(self, env_path: Path = Path('.env')):
+#         self.env_path = env_path
+#         self.data = self.get()
+#
+#     def __getitem__(self, item):
+#         return self.data[item]
+#
+#     def __setitem__(self, key, value):
+#         self.data[key] = value
+#         dotenv.set_key(self.env_path, key, value, quote_mode='never')
+#
+#     def get(self):
+#         env_data = dotenv.dotenv_values(self.env_path)
+#         return env_data
+#
+#     def write(self):
+#         for k, v in self.data.items():
+#             dotenv.set_key(self.env_path, k, v, quote_mode='never')
+#
+#
+# dm = DotenvMan()
 
 
 def run_cmd(cmd: str):
-    logger.debug("cmd: {}", cmd)
+    console.log(cmd, style='magenta')
     os.system(cmd)
 
 
-@app.command()
-def build(tag: str = typer.Option(f"{project_folder.name}:latest", '--tag', '-t'), env_name: str = 'development'):
-    poetry_version = subprocess.run('poetry --version'.split(' '),
-                                    capture_output=True, text=True).stdout.split(' ')[-1]
+context_settings = {"allow_extra_args": True, "ignore_unknown_options": True}
+
+
+def get_user_group_ids():
+    user_id = os.getuid()
+    group_id = os.getgid()
+    return user_id, group_id
+
+
+@app.command(context_settings=context_settings)
+def build(ctx: typer.Context,
+          version: str = typer.Option("latest", '--version', '-v'),
+          target='base'):
     dm['PROJECT_NAME'] = project_folder.name
-    dm['APP_IMAGE_NAME'] = tag
     dm['PROJECT_PATH'] = str(project_folder)
-    cmd = f'docker image build ' \
-          f'-t {tag} ' \
-          f'--build-arg CUDA_VERSION_TAG={dm[EnvKeys.CUDA_VERSION_TAG]} ' \
-          f'--build-arg USER_ID={os.getuid()} ' \
-          f'--build-arg GROUP_ID={os.getgid()} ' \
-          f'--build-arg USERNAME={getpass.getuser()} ' \
-          f"--build-arg PROJECT_PATH='{project_folder}' " \
-          f'--build-arg ENV_NAME={env_name} ' \
-          f"--build-arg POETRY_VERSION='{poetry_version}' ."
+    user_id, group_id = get_user_group_ids()
+
+    cmd_parts = [
+        'docker image build',
+        f'--build-arg USER_ID={user_id}',
+        f'--build-arg GROUP_ID={group_id}',
+        f'--build-arg USERNAME={getpass.getuser()}',
+        f"--build-arg PROJECT_PATH='{project_folder}'",
+        f"--build-arg BASE_IMAGE={dm['BASE_IMAGE']}",
+        # f"--build-arg BUILDPLATFORM={dm['BUILDPLATFORM']}",
+    ]
+    assert target, 'Please specify build target'
+
+    cmd_parts.append(f"--target {target}")
+    tag = '-'.join([project_folder.name, target]) + f':{version}'
+
+    dm[f'APP_IMAGE_NAME_{target.upper()}'] = tag
+    cmd_parts.append(f'-t {tag}')
+    cmd = " ".join(cmd_parts + ctx.args + ['.'])
     run_cmd(cmd)
 
 
-@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+# @app.command(context_settings=context_settings)
+# def run(ctx: typer.Context, command: str = typer.Option('bash', '--command', '--cmd'),
+#         display: bool = typer.Option(True)):
+#     # cmd = ' '.join([f'docker-compose run -it --rm app'] + ctx.args)
+#
+#     cmd_parts = ['docker run -it --rm']
+#     for v in [dm['PROJECT_PATH'], dm['STORAGE_FOLDER']]:
+#         cmd_parts.append(f"-v {v}:{v}")
+#     # cmd_parts.append('--device /dev/snd')
+#     if display:
+#         os.system('xhost +')
+#         cmd_parts.append('--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"')
+#         cmd_parts.append('--env="DISPLAY"')
+#         cmd_parts.append('--env-file ".env"')
+#         cmd_parts.append(f'--shm-size=12gb')
+#     cmd_parts.extend(ctx.args)
+#     cmd_parts.append(f"{dm['APP_IMAGE_NAME_BASE']} {command}")
+#     cmd = " ".join(cmd_parts)
+#     run_cmd(cmd)
+
+@app.command(context_settings=context_settings)
 def run(ctx: typer.Context, command: str = typer.Option('bash', '--command', '--cmd'),
         display: bool = typer.Option(True)):
     # cmd = ' '.join([f'docker-compose run -it --rm app'] + ctx.args)
 
-    cmd_parts = ['docker run -it --rm']
-    for v in [dm['PROJECT_PATH'], dm['STORAGE_FOLDER']]:
-        cmd_parts.append(f"-v {v}:{v}")
+    cmd_parts = [get_compose_cmd()]
+    # for v in [dm['PROJECT_PATH'], dm['STORAGE_FOLDER']]:
+    #     cmd_parts.append(f"-v {v}:{v}")
     # cmd_parts.append('--device /dev/snd')
+    cmd_parts.append('--env-file ".env"')
+    cmd_parts.append('run -i --rm')
     if display:
         os.system('xhost +')
         cmd_parts.append('--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw"')
         cmd_parts.append('--env="DISPLAY"')
     cmd_parts.extend(ctx.args)
-    cmd_parts.append(f"{dm['APP_IMAGE_NAME']} {command}")
+    cmd_parts.append('app')
+    cmd_parts.append(command)
     cmd = " ".join(cmd_parts)
     run_cmd(cmd)
 
@@ -84,12 +127,6 @@ def run(ctx: typer.Context, command: str = typer.Option('bash', '--command', '--
 @app.command()
 def save_env(file=typer.Option(Path('environment.yaml'))):
     cmd = f'conda env export > {file}'
-    run_cmd(cmd)
-
-
-@app.command()
-def run_jupyter():
-    cmd = 'docker-compose up jupyter_server && docker-compose rm -fsv'
     run_cmd(cmd)
 
 
@@ -107,26 +144,79 @@ class Resolve:
             return dm[self.env_key]
 
 
-def resolve_cuda_version():
-    if 'CUDA_VERSION_TAG' in dm.data:
-        return dm['CUDA_VERSION_TAG']
-
-
 class EnvKeys(str, Enum):
     STORAGE_FOLDER = 'STORAGE_FOLDER'
-    CUDA_VERSION_TAG = 'CUDA_VERSION_TAG'
+    BASE_IMAGE = 'BASE_IMAGE'
+    USER_GROUP = 'USER_GROUP'
 
 
 @app.command()
-def init(storage_folder: Path = typer.Option(Resolve(EnvKeys.STORAGE_FOLDER), '--storage-folder', prompt=True),
-         cuda_version: str = typer.Option(Resolve(EnvKeys.CUDA_VERSION_TAG), '--cuda-version', prompt=True)):
+def init(
+        storage_folder: Path = typer.Option(Resolve(EnvKeys.STORAGE_FOLDER), '--storage-folder', prompt=True),
+        base_image: str = typer.Option(Resolve(EnvKeys.BASE_IMAGE), '--base-image', prompt=True),
+):
     (storage_folder := storage_folder.resolve()).mkdir(exist_ok=True, parents=True)
 
     for path in ['.env', '.gitignore', '.dockerignore']:
         Path(path).touch(exist_ok=True)
-
     dm[EnvKeys.STORAGE_FOLDER] = str(storage_folder)
-    dm[EnvKeys.CUDA_VERSION_TAG] = cuda_version.strip()
+    dm[EnvKeys.BASE_IMAGE] = base_image
+    dm[EnvKeys.USER_GROUP] = ":".join(map(str, get_user_group_ids()))
+
+
+@app.command()
+def exec():
+    container_name = dm['PROJECT_NAME']
+    cmd = f'docker exec -it {container_name} bash'
+    run_cmd(cmd)
+
+
+def get_compose_cmd():
+    docker_compose = 'docker compose'
+    if subprocess.run(docker_compose, shell=True, stdout=subprocess.PIPE).returncode:
+        docker_compose = 'docker-compose'
+    return docker_compose
+
+
+@app.command(context_settings=context_settings)
+def downup(ctx: typer.Context):
+    """
+    docker compose down + docker compose up with additional user provided args and options.
+    """
+    docker_compose = get_compose_cmd()
+    parts = [
+        f'{docker_compose} down -t 3 --remove-orphans &&',
+        f'{docker_compose} up',
+    ]
+    cmd = " ".join(parts + ctx.args)
+    run_cmd(cmd)
+
+
+@app.command()
+def generate_proto():
+    for proto_file in Path('./protos').rglob('*.proto'):
+        parts = [
+            'python3 -m grpc_tools.protoc',
+            f'--proto_path=.',
+            f'--python_out=.',
+            f'--grpc_python_out=.',
+            str(proto_file),
+        ]
+        run_cmd(" ".join(parts))
+
+
+@app.command()
+def save_env(filename: Path = typer.Option(Path('env.yaml'), prompt=True)):
+    cmd = f'micromamba env export > {filename}'
+    run_cmd(cmd)
+
+
+@app.command()
+def install(ctx: typer.Context,
+            packages: List[str],
+            channel: str = typer.Option('conda-forge', '--channel', '-c'), ):
+    cmd = f'micromamba install -c {channel}'
+    run_cmd(" ".join([cmd] + ctx.args + packages))
 
 
 if __name__ == "__main__":
