@@ -1,1 +1,1 @@
-docker compose run app bash
+docker compose run --rm -i "$@"
