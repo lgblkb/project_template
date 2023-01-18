@@ -5,6 +5,4 @@ RUN --mount=type=cache,target=/home/$MAMBA_USER/.mamba/pkgs \
     micromamba create --name $ENV_NAME --verbose --yes --file env.yaml && \
     micromamba clean --all --yes
 
-ARG MAMBA_DOCKERFILE_ACTIVATE=1
-
-WORKDIR /project
+#ARG MAMBA_DOCKERFILE_ACTIVATE=1

@@ -1,23 +1,20 @@
+x-env_params: &env_params
+  STORAGE_DIR: &STORAGE_DIR /storage
+  PROJECT_DIR: &PROJECT_DIR /project
+  TZ: Asia/Almaty
+
+x-service: &service
+  build: .
+  volumes:
+    - { type: bind, source: "${PROJECT_DIR}", target: *PROJECT_DIR }
+    - { type: bind, source: "${STORAGE_DIR}", target: *STORAGE_DIR }
+  shm_size: "12gb"
+  environment:
+    <<: *env_params
+
 services:
-  app:
-    build: { }
-    volumes:
-      - '.:/project'
-      - '${STORAGE}:/storage'
-    environment: { }
+  server:
+    <<: *service
     command: sleep infinity
-    shm_size: "12gb"
+    working_dir: *PROJECT_DIR
 
-
-#  db:
-#    image: "postgres:15-bullseye"
-#    restart: unless-stopped
-#    environment:
-#      POSTGRES_PASSWORD: '${PROJECT_NAME}'
-#      POSTGRES_USER: '${PROJECT_NAME}'
-#      POSTGRES_DB: '${PROJECT_NAME}'
-#      TZ: "Asia/Almaty"
-#    volumes:
-#      - "${STORAGE_FOLDER}/${PROJECT_NAME}_pgdata:/var/lib/postgresql/data"
-#    ports:
-#      - "5432:5432"
