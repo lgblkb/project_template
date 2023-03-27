@@ -3,7 +3,7 @@ x-env_params: &env_params
   PROJECT_DIR: &PROJECT_DIR /project
   TZ: Asia/Almaty
 
-x-service: &service
+x-default: &default
   build: .
   volumes:
     - { type: bind, source: "${PROJECT_DIR}", target: *PROJECT_DIR }
@@ -14,7 +14,8 @@ x-service: &service
 
 services:
   server:
-    <<: *service
+    <<: *default
     command: sleep infinity
     working_dir: *PROJECT_DIR
+
 
