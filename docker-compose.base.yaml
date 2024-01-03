@@ -1,0 +1,53 @@
+x-env_params: &env_params
+  STORAGE_DIR: &STORAGE_DIR /storage
+  PROJECT_DIR: &PROJECT_DIR /project
+  TZ: Asia/Almaty
+
+  DB_HOST: db
+  DB_PORT: 5432
+
+x-default: &default
+  build: .
+  volumes:
+    - { type: bind, source: "${PROJECT_DIR}", target: *PROJECT_DIR }
+    - { type: bind, source: "${STORAGE_DIR}", target: *STORAGE_DIR }
+  shm_size: "12gb"
+  working_dir: *PROJECT_DIR
+  environment:
+    <<: *env_params
+
+services:
+  bot:
+    <<: *default
+    command: >-
+      bash -c "
+      alembic upgrade head &&
+      python -m tatar_tts_scoring.bot
+      "
+    restart: always
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-bullseye
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_DB: "${DB_NAME}"
+      TZ: "Asia/Almaty"
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - "postgres_data:/var/lib/postgresql/data"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "${ADMINER_PORT}:8080"
+
+
+
+volumes:
+  postgres_data: { }
